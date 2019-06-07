@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>colnames</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>DECLARE @i VARCHAR(MAX) 
+SELECT @i = COALESCE(@i + ', ','') + COLUMN_NAME
+  FROM INFORMATION_SCHEMA.COLUMNS
+ WHERE 1 = 1
+   AND TABLE_SCHEMA = ''
+   AND TABLE_NAME = '' 
+-- ORDER BY COLUMN_NAME
+SELECT @i;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

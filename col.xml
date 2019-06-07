@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>col</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>SELECT COLUMN_NAME,
+       COLUMN_DEFAULT,
+       IS_NULLABLE,
+       DATA_TYPE,
+       CHARACTER_MAXIMUM_LENGTH,
+       NUMERIC_PRECISION,
+       NUMERIC_SCALE
+  FROM INFORMATION_SCHEMA.COLUMNS
+ WHERE 1 = 1
+   --AND TABLE_SCHEMA = ''
+   AND TABLE_NAME = '#'
+ ORDER BY ORDINAL_POSITION;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

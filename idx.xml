@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>idx</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>true</SelectReplacement>
+  <Replacement>;WITH LIST_INDEXES
+ AS
+(
+SELECT CASE SO.type
+	       WHEN 'TT' THEN SCHEMA_NAME(STT.schema_id)
+		  WHEN 'U' THEN SCHEMA_NAME(SO.schema_id)
+	  END AS Sch_Name,
+       CASE SO.type
+	       WHEN 'TT' THEN STT.name
+		  WHEN 'U' THEN SO.name
+	  END AS ObjectName,
+	  SO.type_desc AS Object_Type,
+       SI.type_desc,
+	  CACC.Column_Count,
+	  CARC.Row_Count
+  FROM sys.indexes AS SI
+       INNER JOIN sys.objects AS SO ON SI.object_id = SO.object_id
+	  INNER JOIN sys.schemas AS SS ON SO.schema_id = SS.schema_id
+	  LEFT JOIN sys.table_types AS STT ON SO.object_id = STT.type_table_object_id
+	  CROSS APPLY (SELECT SUM(row_count) AS Row_Count FROM sys.dm_db_partition_stats AS SP WHERE SO.object_id = SP.object_id AND SP.index_id &lt; 2) CARC
+	  CROSS APPLY (SELECT COUNT(1) AS Column_Count FROM sys.columns AS SC WHERE SO.object_id = SC.object_id) CACC
+ WHERE 1 = 1
+   AND SO.type IN ('TT', 'U')
+   --AND SI.type &gt; 0 --0 INDICATES HEAP. UNCOMMENT THIS TO REMOVE THE LIST OF TABLES/TABLE_TYPES HAVING NO INDEXES.  
+)
+SELECT CONCAT(Sch_Name, '.', ObjectName) AS ObjectName, 
+       Object_Type, 
+	  Column_Count, 
+	  Row_Count, 
+	  [Clustered] AS Clustered_Idx_Count, 
+	  [Nonclustered] AS NonClustered_Idx_Count, 
+	  [CLUSTERED] + [NONCLUSTERED] AS 'No. of Indexes'
+  FROM LIST_INDEXES
+ PIVOT (COUNT (type_desc) FOR type_desc IN ([Clustered], [Nonclustered])) PVT
+ WHERE 1 = 1
+   --AND Sch_Name = ''
+ ORDER BY Sch_Name, Object_Type DESC, ObjectName
+;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

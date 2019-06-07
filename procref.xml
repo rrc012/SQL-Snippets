@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>procref</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>SELECT CONCAT(RFG.Referenced_Schema_Name, '.', RFG.Referenced_Entity_Name) AS Referenced_Object_Name,
+	  COALESCE(SOG.type_desc, RFG.referenced_class_desc) AS Referenced_Object_Type,
+	  CONCAT(OBJECT_SCHEMA_NAME(RFD.referencing_id), '.', OBJECT_NAME(RFD.referencing_id)) AS Referencing_Object_Name,
+	  COALESCE(SOD.type_desc, RFD.referenced_class_desc) AS Referencing_Object_Type
+  FROM sys.procedures AS SP
+       LEFT JOIN sys.sql_expression_dependencies AS RFG ON SP.object_id = RFG.referencing_id
+       LEFT JOIN sys.objects AS SOG ON RFG.referenced_id = SOG.object_id
+	  LEFT JOIN sys.sql_expression_dependencies AS RFD ON SP.object_id = RFD.referenced_id
+	  LEFT JOIN sys.objects AS SOD ON RFD.referencing_id = SOD.object_id
+ WHERE 1 = 1
+   AND OBJECT_SCHEMA_NAME(SP.OBJECT_ID) IN ('')
+   AND SP.name LIKE '%%'
+ ORDER BY 2, 1, 4, 3
+;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

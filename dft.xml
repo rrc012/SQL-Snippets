@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>dft</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>true</SelectReplacement>
+  <Replacement>;WITH LIST_DEFAULTS
+ AS
+(
+SELECT IIF(SO.type = 'TT', SCHEMA_NAME(STT.schema_id), SCHEMA_NAME(SO.schema_id)) AS Sch_Name,
+       IIF(SO.type = 'TT', STT.name, OBJECT_NAME(DC.parent_object_id)) AS ObjectName,
+       SO.type_desc AS Object_Type,
+       DC.name AS Default_Constraint_Name,
+	  DC.definition AS Default_Value,
+	  SC.name AS Column_Name,
+ 	  SD.name AS Data_Type,
+ 	  SC.max_length AS Max_Length, 
+ 	  SC.precision AS Precision, 
+ 	  SC.scale AS Scale, 
+ 	  IIF(SC.is_nullable = 1, 'YES', 'NO') AS Is_Nullable,
+	  IIF(DC.is_system_named = 1, 'YES', 'NO') AS Is_System_Named
+  FROM sys.default_constraints AS DC
+       LEFT JOIN sys.objects AS SO ON DC.parent_object_id = SO.object_id
+       LEFT JOIN sys.columns AS SC ON SC.default_object_id = DC.object_id
+	  LEFT JOIN sys.types AS SD ON SC.system_type_id = SD.system_type_id
+ 	        AND SC.user_type_id = SD.user_type_id
+       LEFT JOIN sys.table_types AS STT ON DC.parent_object_id = STT.type_table_object_id
+)
+SELECT *
+  FROM LIST_DEFAULTS
+ WHERE 1 = 1
+   --AND Sch_Name = ''
+   --AND Object_Type = ''
+   --AND ObjectName = ''
+   --AND Default_Constraint_Name = ''
+   --AND Is_System_Named = 'NO'
+ ORDER BY 1, 3, 2
+;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

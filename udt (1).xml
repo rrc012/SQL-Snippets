@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>udt</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>true</SelectReplacement>
+  <Replacement>;WITH UDT_INFO
+ AS
+(
+SELECT CONCAT(SCHEMA_NAME(STT.schema_id), '.', STT.name) AS Table_Type_Name,
+       SO.Create_Date,
+	  SO.Modify_Date,
+	  IIF(OBJECTPROPERTY(STT.type_table_object_id, 'TableHasPrimaryKey') = 1, 'YES', 'NO') AS Primary_Key_Exists,
+	  IIF(OBJECTPROPERTY(STT.type_table_object_id, 'TableHasIdentity') = 1, 'YES', 'NO') AS Identity_Column_Exists,
+	  IIF(OBJECTPROPERTY(STT.type_table_object_id, 'TableHasClustIndex') = 1, 1, 0) AS Clustered_Idx_Count,
+	  OAIX.NonClustered_Idx_Count,
+	  CAC.Column_Count,
+	  OACC.Computed_Column_Count,
+	  OADC.Default_Constraint_Count,
+	  COALESCE(OAREF.Referencing_Entity_Name, 'N/A') AS Referencing_Entity_Name,
+	  COALESCE(OAREF.Referencing_Entity_Type, 'SQL_STORED_PROCEDURE') AS Referencing_Entity_Type,
+	  COALESCE(OAREF.Referencing_Entities_Count, 0) AS Referencing_Entities_Count
+  FROM sys.table_types AS STT
+	  OUTER APPLY (SELECT COUNT(1) AS NonClustered_Idx_Count FROM sys.indexes AS IDX WHERE STT.type_table_object_id = IDX.object_id AND IDX.type_desc = 'NONCLUSTERED') OAIX
+	  CROSS APPLY (SELECT COUNT(1) AS Column_Count FROM sys.columns AS SC WHERE STT.type_table_object_id = SC.object_id) CAC
+	  OUTER APPLY (SELECT COUNT(1) AS Default_Constraint_Count FROM sys.default_constraints AS DC WHERE STT.type_table_object_id = DC.parent_object_id) OADC
+	  OUTER APPLY (SELECT COUNT(1) AS Computed_Column_Count FROM sys.computed_columns AS CC WHERE STT.type_table_object_id = CC.object_id) OACC
+	  OUTER APPLY (SELECT CONCAT(referencing_schema_name, '.', referencing_entity_name) AS Referencing_Entity_Name,
+					  SO.type_desc AS Referencing_Entity_Type,
+					  COUNT(SO.type_desc) OVER (PARTITION BY STT.type_table_object_id, SO.type_desc) AS Referencing_Entities_Count				  
+				  FROM sys.dm_sql_referencing_entities (SCHEMA_NAME(STT.schema_id) + '.' + STT.name, 'TYPE') AS REF
+					  INNER JOIN sys.objects AS SO ON REF.referencing_id = SO.object_id
+			    ) OAREF
+       INNER JOIN sys.objects AS SO ON STT.type_table_object_id = SO.object_id
+ WHERE 1 = 1
+   AND STT.is_user_defined = 1
+   AND STT.is_table_type = 1
+   --AND SCHEMA_NAME(STT.schema_id) IN ('')
+   --AND STT.name LIKE '%%'
+   --AND IDX.type &gt; 0 --0 INDICATES HEAP. UNCOMMENT THIS TO ELIMINATE THE LIST OF TABLE_TYPES HAVING NO INDEXES.
+),
+LIST_UDTS
+AS
+(
+SELECT T1.Table_Type_Name,
+       T1.Create_Date,
+	  T1.Modify_Date,
+	  T1.Column_Count,
+       T1.Primary_Key_Exists,
+	  T1.Identity_Column_Exists,	  
+	  T1.Computed_Column_Count,
+	  T1.Default_Constraint_Count,
+       T1.Clustered_Idx_Count,
+       T1.NonClustered_Idx_Count,
+       T1.Clustered_Idx_Count + T1.NonClustered_Idx_Count AS 'No. of Indexes',       	  
+	  ISNULL(SP.Referencing_Entities_Count, 0) AS Referencing_Procs_Count,
+	  ISNULL(TRG.Referencing_Entities_Count, 0) AS Referencing_Triggers_Count,
+	  T1.Referencing_Entity_Type,
+	  OAFK.Referencing_Entity_Name
+  FROM UDT_INFO AS T1
+	  OUTER APPLY (SELECT (STUFF(
+						    (SELECT CONCAT(CHAR(10), Referencing_Entity_Name)
+							  FROM UDT_INFO AS T2
+							 WHERE T1.Table_Type_Name = T2.Table_Type_Name
+							   AND T1.Referencing_Entity_Type = T2.Referencing_Entity_Type
+							 ORDER BY 1      
+							   FOR XML PATH ('')
+						    ), 1, 1, ''
+						   )
+	                      ) AS Referencing_Entity_Name
+			    ) OAFK
+       LEFT JOIN UDT_INFO AS SP ON T1.Table_Type_Name = SP.Table_Type_Name
+	        AND SP.Referencing_Entity_Type = 'SQL_STORED_PROCEDURE'
+       LEFT JOIN UDT_INFO AS TRG ON T1.Table_Type_Name = TRG.Table_Type_Name
+	        AND TRG.Referencing_Entity_Type = 'SQL_TRIGGER'
+)
+SELECT Table_Type_Name,
+       Create_Date,
+	  Modify_Date,
+       Column_Count,
+       Primary_Key_Exists,
+       Identity_Column_Exists,
+       Computed_Column_Count,
+       Default_Constraint_Count,
+       Clustered_Idx_Count,
+       NonClustered_Idx_Count,
+       [No. of Indexes],
+	  ISNULL(SQL_STORED_PROCEDURE, 'N/A') AS Referencing_Stored_Procs,
+	  Referencing_Procs_Count,
+	  ISNULL(SQL_TRIGGER, 'N/A') AS Referencing_Triggers,
+	  Referencing_Triggers_Count
+  FROM LIST_UDTS
+ PIVOT (MAX(Referencing_Entity_Name) FOR Referencing_Entity_Type IN ([SQL_STORED_PROCEDURE], [SQL_TRIGGER])) PVT;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

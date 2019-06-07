@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>param</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>;WITH LIST_PARAMETERS
+AS
+(
+SELECT OBJECT_SCHEMA_NAME(SO.object_id) AS SchemaName,
+       SO.name AS ObjectName,
+	  SO.type_desc AS Object_Type,
+	  SPA.name AS Parameter_Name,
+	  SPA.parameter_id AS Parameter_Order,
+	  TYPE_NAME(SPA.user_type_id) AS Data_Type,
+	  IIF(SPA.name IS NULL, NULL, IIF(SPA.system_type_id = SPA.user_type_id, 'NO', 'YES')) AS Is_User_Defined,
+	  SPA.Max_Length,
+	  SPA.Precision,
+	  SPA.Scale,
+	  IIF(SPA.name IS NULL, NULL, IIF(SPA.is_nullable = 1, 'YES', 'NO')) AS Is_Nullable,
+	  IIF(SPA.name IS NULL, NULL, IIF(SPA.is_output = 1, 'YES', 'NO')) AS Is_Output,
+	  IIF(SPA.name IS NULL, NULL, IIF(SPA.is_readonly = 1, 'YES', 'NO')) AS Is_Readonly,
+	  IIF(SPA.name IS NULL, NULL, IIF(SPA.has_default_value = 1, 'YES', 'NO')) AS Is_Default,
+	  IIF(SPA.name IS NULL, NULL, ISNULL(SPA.default_value, '-')) AS Default_Value
+  FROM sys.objects AS SO
+       INNER JOIN sys.parameters AS SPA ON SO.object_id = SPA.object_id
+ WHERE SO.type IN ('P','FN','TF', 'IF', 'IS', 'AF','PC', 'FS', 'FT')
+)
+SELECT *
+  FROM LIST_PARAMETERS
+ WHERE 1 = 1
+   AND SchemaName = ''
+   AND ObjectName IN ('')
+ ORDER BY 1, 2, 4;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

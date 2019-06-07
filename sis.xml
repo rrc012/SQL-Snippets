@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>sis</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>/*
+This is an easy way to look through the sources of all objects in the database
+if you need to find particular string. This script can be used, for example,
+to find references of some specific object by other objects. Depending on the
+size of your database you might want to limit the search scope to particular 
+object type. Just comment unneeded object types in WHERE statement.
+Enter search string between %% marks in @SearchPattern initialisation statement.
+When you get the results you can copy object name from "FullName" column and
+use SSMSBoost to quickly locate it in the object explorer, or you can continue
+searching in results using "Find in ResultsGrid" function.
+
+This script is provided to you by SSMSBoost as is. Improvements and comments are welcome.
+Redistribution with reference to SSMSBoost project website is welcome.
+SSMSBoost team, 2014
+*/
+DECLARE @SearchPattern NVARCHAR(128) = '%%';
+
+SELECT SCHEMA_NAME(o.schema_id) + '.' + o.[name] AS FullName,
+	  o.[type],
+	  OBJECT_DEFINITION(object_id) AS [Source]
+  FROM sys.objects AS o
+ WHERE LOWER(OBJECT_DEFINITION(o.object_id)) LIKE LOWER(@SearchPattern)
+   AND o.[type] IN (
+		'C', --- = Check constraint
+		'D', --- = Default (constraint or stand-alone)
+		'P', --- = SQL stored procedure
+		'FN',--- = SQL scalar function
+		'R', --- = Rule
+		'RF',--- = Replication filter procedure
+		'TR',--- = SQL trigger (schema-scoped DML trigger, or DDL trigger at either the database or server scope)
+		'IF',--- = SQL inline table-valued function
+		'TF',--- = SQL table-valued function
+		'V') --- = View
+ ORDER BY FullName;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>start</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>USE msdb;
+GO
+ 
+SET NOCOUNT ON;
+ 
+/*
+SELECT j.name, js.step_id, js.step_name, js.subsystem 
+  FROM dbo.sysjobs AS j
+       INNER JOIN dbo.sysjobsteps AS js on j.job_id = js.job_id
+ WHERE 1 = 1
+ ORDER BY 1, 2;
+--*/
+ 
+EXEC dbo.sp_start_job @job_name = N'',
+                      @step_name = NULL;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

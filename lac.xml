@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>lac</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>;WITH SUS
+AS
+(
+SELECT last_user_seek,
+       last_user_scan,
+       last_user_lookup,
+       [object_id],
+       database_id,
+       last_user_update, COALESCE(last_user_seek, last_user_scan, last_user_lookup,0) AS null_indicator
+  FROM sys.dm_db_index_usage_stats
+ WHERE database_id = DB_ID()
+),
+CTE
+AS
+(
+SELECT MAX(up.last_user_read) AS 'last_read',
+       MAX(up.last_user_update) AS 'last_write',
+       UP.[object_id]
+  FROM SUS 
+       UNPIVOT (last_user_read FOR read_date IN (last_user_seek, last_user_scan, last_user_lookup, null_indicator)) AS UP
+ GROUP BY UP.[object_id]
+)
+SELECT DISTINCT OBJECT_SCHEMA_NAME(t.[object_id]) AS 'Schema',
+       OBJECT_NAME(t.[object_id]) AS 'Table/View Name',
+       CASE WHEN rw.last_read &gt; 0 THEN rw.last_read END AS last_read,
+       rw.last_write,
+       t.[object_id]
+ FROM sys.tables AS t
+      LEFT JOIN CTE AS rw ON rw.[object_id] = t.[object_id]
+WHERE OBJECT_SCHEMA_NAME(t.[object_id]) = 'AUDIT'
+ORDER BY last_read, last_write, [Table/View Name];</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

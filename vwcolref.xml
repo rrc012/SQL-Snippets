@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>vwcolref</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>SELECT OBJECT_SCHEMA_NAME(SV.object_id) AS View_Schema,
+       SV.name AS View_Name,
+	  OBJECT_SCHEMA_NAME(SO.object_id) AS Base_Object_Schema,
+	  SO.name AS Base_Object_Name,
+	  SO.type_desc AS Base_Object_Type,
+       OC.name AS Column_Name,
+	  TYPE_NAME(OC.user_type_id) AS Data_Type,
+	  OC.max_length AS Max_Length,
+	  OC.precision AS Precision,
+	  OC.scale AS Scale,
+	  IIF(OC.is_nullable = 1, 'YES', 'NO') AS Is_Nullable,
+       IIF(OC.is_identity = 1, 'YES', 'NO') AS Is_Identity,
+	  IIF(OC.is_computed = 1, 'YES', 'NO') AS Is_Computed,
+	  IIF(OC.default_object_id != 0, 'YES', 'NO') AS Is_Default,
+	  SO.Create_Date AS Base_Object_Created_Date,
+	  SO.Modify_Date AS Base_Object_Modified_Date
+  FROM sys.views AS SV
+       INNER JOIN sys.sql_expression_dependencies AS SD ON SV.object_id = SD.referencing_id
+	  INNER JOIN sys.objects AS SO ON SD.referenced_id = SO.object_id
+       INNER JOIN sys.columns AS OC ON OC.object_id = SD.referenced_id
+	         AND OC.column_id = SD.referenced_minor_id
+ WHERE 1 = 1
+   AND OBJECT_SCHEMA_NAME(SV.object_id) IN ('')
+   AND SV.name = ''
+ ORDER BY 1, 2, 3, 4, OC.column_id
+;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>ssisjob</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>true</SelectReplacement>
+  <Replacement>SELECT J.name AS job_name,
+       JS.step_name,
+       JS.subsystem,
+       JS.database_name,
+       JA.Start_execution_date AS start_time,
+       DATEDIFF(ss, JA.Start_execution_date, GETDATE()) as [Has_been_running (in sec)]
+  FROM msdb.dbo.sysjobactivity JA
+       INNER JOIN msdb.dbo.sysjobs J ON J.job_id = JA.job_id
+       INNER JOIN msdb.dbo.sysjobsteps JS ON JA.job_id = JS.job_id
+ WHERE job_history_id IS NULL
+   AND start_execution_date IS NOT NULL
+   --AND J.name = '#'
+ ORDER BY start_execution_date;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

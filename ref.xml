@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>ref</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>SELECT DMV.referencing_schema_name, 
+       DMV.referencing_entity_name, 
+	   SO.type_desc
+  FROM sys.dm_sql_referencing_entities('schema_name.referenced_entity_name', 'referenced_class') AS DMV
+       INNER JOIN sys.objects AS SO ON DMV.referencing_id = SO.object_id
+--&lt;referenced_class&gt; ::= {OBJECT | TYPE | XML_SCHEMA_COLLECTION | PARTITION_FUNCTION}
+;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

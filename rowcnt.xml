@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>rowcnt</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>;WITH Total_Rows
+AS
+(
+SELECT SS.name AS Sch_Name,
+       ST.name AS Table_Name, 
+       SUM(SP.row_count) AS Row_Count
+  FROM sys.tables AS ST
+	  INNER JOIN sys.schemas AS SS ON ST.schema_id = SS.schema_id
+	  LEFT JOIN sys.dm_db_partition_stats AS SP ON ST.object_id = SP.object_id AND SP.index_id &lt; 2
+ WHERE 1 = 1
+   --AND SS.name = ''
+   --AND ST.name IN ('')
+ GROUP BY SS.name, ST.name
+)
+SELECT * 
+  FROM Total_Rows
+ WHERE 1 = 1
+   --AND Row_Count &gt; 0
+ ORDER BY 1, 2;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

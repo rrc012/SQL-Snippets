@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>citf</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>CREATE FUNCTION --(owner_name.)function_name
+  --(@parameter_name AS scalar_data_type ( = default_value ), ...)
+RETURNS TABLE
+--WITH ENCRYPTION|SCHEMABINDING, ...
+AS
+RETURN ( SELECT /* query specification */ )
+GO</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

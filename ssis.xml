@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>ssis</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>true</SelectReplacement>
+  <Replacement>SELECT J.name AS JobName,
+       JS.step_id AS Step#,
+       JS.command AS SSISLocation,
+	   CASE JS.last_run_outcome
+		    WHEN 0 THEN 'Failed'
+		    WHEN 1 THEN 'Succeeded'
+		    WHEN 2 THEN 'Retry'
+		    WHEN 3 THEN 'Canceled'
+		    WHEN 5 THEN 'Unknown' -- In Progress
+	   END AS LastRunStatus,
+	   STUFF(STUFF(RIGHT('000000' + CAST(JS.last_run_duration AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') AS Run_Time
+  FROM msdb.dbo.sysjobs AS J
+       INNER JOIN msdb.dbo.sysjobsteps AS JS ON J.job_id = JS.job_id
+ WHERE 1 = 1
+   AND JS.subsystem = 'SSIS'
+ ORDER BY 1
+;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>
