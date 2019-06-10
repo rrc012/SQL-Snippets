@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>stop</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>USE msdb;
+GO
+
+SET NOCOUNT ON;
+
+/*
+SELECT * 
+  FROM dbo.sysjobs
+ WHERE 1 = 1
+ ORDER BY 3;
+--*/
+
+EXEC dbo.sp_stop_job N'#';</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>
