@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>syn</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>SELECT Name, 
+       COALESCE(PARSENAME(base_object_name, 4), @@servername) AS ServerName, 
+       COALESCE(PARSENAME(base_object_name, 3), DB_NAME(DB_ID())) AS DBName, 
+       COALESCE(PARSENAME(base_object_name, 2), SCHEMA_NAME(SCHEMA_ID())) AS SchemaName, 
+       PARSENAME(base_object_name, 1) AS objectName 
+  FROM sys.synonyms
+ WHERE 1 = 1
+   AND name = '#'
+ ORDER BY 1, 2, 3, 4, 5;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

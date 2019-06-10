@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>tbl</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>SELECT TABLE_SCHEMA,
+	  TABLE_NAME,
+	  TABLE_SCHEMA + '.' + TABLE_NAME AS TBL_NAME
+  FROM INFORMATION_SCHEMA.TABLES
+ WHERE 1 = 1
+   AND TABLE_TYPE = 'BASE TABLE'
+   --AND TABLE_SCHEMA = ''
+   --AND TABLE_NAME LIKE '%%'
+ ORDER BY 1, 2
+;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

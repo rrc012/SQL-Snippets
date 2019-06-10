@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>idxnames</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>true</SelectReplacement>
+  <Replacement>;WITH IDX_COLUMNS
+ AS
+(
+SELECT CASE SO.type
+	       WHEN 'TT' THEN SCHEMA_NAME(STT.schema_id)
+		  WHEN 'U' THEN SCHEMA_NAME(SO.schema_id)
+	  END AS Sch_Name,
+       CASE SO.type
+	       WHEN 'TT' THEN STT.name
+		  WHEN 'U' THEN SO.name
+	  END AS ObjectName,
+	  SO.type_desc AS Object_Type,
+	  SI.name AS Idx_Name,
+	  SI.type_desc AS Idx_Type,
+	  IIF(SI.is_unique = 1, 'YES', 'NO') AS Is_Unique,
+	  IIF(SI.is_disabled = 1, 'YES', 'NO') AS Is_Disabled,	  
+	  IIF(SI.is_primary_key = 1, 'YES', 'NO') AS Is_Primary_Key,
+	  IIF(SI.is_unique_constraint = 1, 'YES', 'NO') AS Is_Unique_Constraint,
+	  IIF(SC.is_identity = 1, 'YES', 'NO') AS Is_Identity,
+	  IIF(IC.is_included_column = 1, 'YES', 'NO') AS Is_Included_Column,
+	  COL_NAME(IC.object_id, IC.column_id) AS Column_Name,
+	  IC.index_column_id AS Index_Column_ID,	  
+	  ST.name AS Data_Type,
+	  SC.max_length AS Max_Length, 
+	  SC.precision AS Precision, 
+	  SC.scale AS Scale, 
+	  CASE WHEN SC.is_nullable = 1 THEN 'YES' ELSE 'NO' END AS Is_Nullable,
+	  CA.Row_Cnt
+  FROM sys.indexes AS SI
+       INNER JOIN sys.objects AS SO ON SI.object_id = SO.object_id	   
+	  INNER JOIN sys.index_columns AS IC ON SI.index_id = IC.index_id
+	         AND SO.object_id = IC.object_id
+	  INNER JOIN sys.columns AS SC ON SO.object_id = SC.object_id
+	         AND IC.column_id = SC.column_id
+	  INNER JOIN sys.types AS ST ON SC.system_type_id = ST.system_type_id
+	         AND SC.user_type_id = ST.user_type_id
+       LEFT JOIN sys.table_types AS STT ON SC.object_id = STT.type_table_object_id
+	  CROSS APPLY (SELECT ISNULL(SUM(row_count), 0) AS Row_Cnt FROM sys.dm_db_partition_stats AS SP WHERE SO.object_id = SP.object_id AND SP.index_id &lt; 2) CA
+ WHERE 1 = 1
+   AND SO.type IN ('TT', 'U')
+   --AND SI.type = 
+   --(0 = Heap; 1 = Clustered; 2 = Nonclustered; 3 = XML; 4 = Spatial; 5 = Clustered columnstore index; 6 = Nonclustered columnstore index; 7 = Nonclustered hash index)
+)
+SELECT * 
+  FROM IDX_COLUMNS
+ WHERE 1 = 1
+   --AND Sch_Name = ''
+   --AND ObjectName = ''
+ ORDER BY Sch_Name, Object_Type DESC, ObjectName, Idx_Type, Idx_Name, Index_Column_ID
+;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

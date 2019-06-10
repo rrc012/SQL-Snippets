@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>exc</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>true</SelectReplacement>
+  <Replacement>[TestMethod(), ExpectedSqlException(Severity = 16, MatchFirstError = false)]</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

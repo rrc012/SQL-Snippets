@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>stats</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>SELECT name AS IndexName,
+       STATS_DATE(object_id, stats_id) AS LastStatisticsUpdate
+  FROM sys.stats
+ WHERE object_id = OBJECT_ID('TABLENAME')
+   AND name = 'INDEXNAME';</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>

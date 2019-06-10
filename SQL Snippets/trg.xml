@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Token>trg</Token>
+  <Name />
+  <CaseSensitive>false</CaseSensitive>
+  <SelectReplacement>false</SelectReplacement>
+  <Replacement>;WITH LIST_TRIGGERS
+AS
+(
+SELECT OBJECT_SCHEMA_NAME(ST.object_id) AS Trigger_Schema_Name,
+       ST.name AS Trigger_Name,
+	  CASE WHEN ST.parent_class = 0 THEN 'DDL' ELSE 'DML' END AS [DDL/DML Type],
+	  TE.type_desc AS Trigger_Event_Type,
+       OBJECT_SCHEMA_NAME(ST.parent_id) AS Parent_Schema_Name,
+       OBJECT_NAME(ST.parent_id) AS Parent_Name,
+	  SO.type_desc AS Parent_Type,
+	  ISNULL(OBJECT_DEFINITION(ST.parent_id), 'N/A') AS Parent_Definition,
+	  OBJECT_DEFINITION(ST.object_id) AS Triger_Definition,
+	  ST.type_desc AS Trigger_Type,
+	  ST.create_date AS Trigger_Create_Date,
+	  ST.modify_date AS Trigger_Modify_Date,
+	  ST.is_ms_shipped,
+	  ST.is_disabled,
+	  ST.is_not_for_replication,
+	  ST.is_instead_of_trigger
+  FROM sys.triggers AS ST       
+       INNER JOIN sys.objects AS SO ON ST.parent_id = SO.object_id
+	  LEFT JOIN sys.trigger_events AS TE ON ST.object_id = TE.object_id
+)
+SELECT * 
+  FROM LIST_TRIGGERS
+ WHERE 1 = 1
+   AND Trigger_Schema_Name IN ('')
+ ORDER BY Trigger_Schema_Name,
+          Trigger_Name,
+          Parent_Schema_Name,
+          Parent_Name
+;</Replacement>
+  <CursorPositionMarker>#</CursorPositionMarker>
+</AutoReplacement>
