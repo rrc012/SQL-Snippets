@@ -9,11 +9,32 @@ GO
 
 SET NOCOUNT ON;
 
-DECLARE @sJobName SYSNAME = NULL, --IF NULL FETCH ALL JOBS, ELSE FETCH THE SPECIFIED JOB DETAILS
-        @iStepID TINYINT = NULL, --IF NULL FETCH ALL THE STEPS ASSOCIATED WITH A JOB, ELSE FETCH THE SPECIFIED STEP DETAILS TIED TO A JOB
-	   @iProxyID TINYINT = NULL, --IF 0 FETCH ONLY THOSE JOBS THAT HAVE PROXIES ASSOCIATED WITH IT
-	   @sFreqType VARCHAR(10) = NULL, --DAILY/WEEKLY/MONTHLY etc
-	   @sSubSystem VARCHAR(10) = NULL; --TSQL/SSIS/CmdExec/PowerShell etc
+DECLARE @iStepID       TINYINT = NULL,     --IF NULL FETCH ALL THE STEPS ASSOCIATED WITH A JOB, ELSE FETCH THE SPECIFIED STEP DETAILS TIED TO A JOB.
+        @iProxyID      TINYINT = NULL,     --IF 0 FETCH ONLY THOSE JOBS THAT HAVE PROXIES ASSOCIATED WITH IT.
+        @sFreqType     VARCHAR(10) = NULL, --DAILY/WEEKLY/MONTHLY etc
+        @sSubSystem    VARCHAR(10) = NULL, --TSQL/SSIS/CmdExec/PowerShell etc
+        @sJobsNameList VARCHAR(1000) = '', --IF BLANK FETCH ALL JOBS, ELSE FETCH THE SPECIFIED JOB DETAILS. ENTER A COMMA-SEPARATED LIST OF JOB NAMES.
+        @iCharPosition TINYINT;
+
+--Used to hold list of SQL Agent Job names to process
+IF OBJECT_ID('tempdb..#JobsNamesList') IS NOT NULL DROP TABLE tempdb..#JobsNamesList;
+CREATE TABLE #JobsNamesList 
+(
+ job_name VARCHAR(128)
+);
+
+--Process list
+SET @sJobsNameList += ',';
+
+WHILE CHARINDEX(',', @sJobsNameList) &gt; 0
+BEGIN
+	SET @iCharPosition = CHARINDEX(',', @sJobsNameList)
+	INSERT INTO #JobsNamesList (job_name)
+	SELECT LTRIM(RTRIM(LEFT(@sJobsNameList, @iCharPosition - 1)));
+	SET @sJobsNameList = STUFF(@sJobsNameList, 1, @iCharPosition, '');
+END  -- While loop
+
+--SELECT * FROM #JobsNamesList;
 
 SELECT j.name AS job_name,
        px.name AS proxy_name,
@@ -46,6 +67,7 @@ SELECT j.name AS job_name,
        ss.date_modified AS schedule_modified_on,
        ss.version_number AS schedule_version_number
   FROM dbo.sysjobs AS j
+       INNER JOIN #JobsNamesList AS jnl ON j.name LIKE COALESCE(CONCAT('%', jnl.job_name, '%'), j.name)
        LEFT JOIN dbo.sysjobsteps AS js ON j.job_id = js.job_id
        LEFT JOIN dbo.sysjobschedules AS jss ON j.job_id = jss.job_id
        LEFT JOIN dbo.sysschedules AS ss ON jss.schedule_id = ss.schedule_id
@@ -134,7 +156,6 @@ SELECT j.name AS job_name,
                             END AS freq_subday_type
                     ) AS fst
  WHERE 1 = 1
-   AND j.name LIKE COALESCE(CONCAT('%', @sJobName, '%'), j.name)
    AND js.step_id &gt;= COALESCE(@iStepID, js.step_id)
    AND COALESCE(ft.freq_type, '') LIKE COALESCE(CONCAT('%', @sFreqType, '%'), ft.freq_type)
    AND js.subsystem LIKE COALESCE(CONCAT('%', @sSubSystem, '%'), js.subsystem)

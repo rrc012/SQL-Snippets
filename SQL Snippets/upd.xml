@@ -4,9 +4,6 @@
   <Name />
   <CaseSensitive>false</CaseSensitive>
   <SelectReplacement>false</SelectReplacement>
-  <Replacement>UPDATE #
-   SET 
- WHERE 1 = 1
-;</Replacement>
+  <Replacement>update # set where </Replacement>
   <CursorPositionMarker>#</CursorPositionMarker>
 </AutoReplacement>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-16"?>
 <AutoReplacement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <Token>noc1</Token>
+  <Token>decv</Token>
   <Name />
   <CaseSensitive>false</CaseSensitive>
   <SelectReplacement>false</SelectReplacement>
-  <Replacement>SET NOCOUNT ON;</Replacement>
+  <Replacement>declare @# varchar(256)</Replacement>
   <CursorPositionMarker>#</CursorPositionMarker>
 </AutoReplacement>
