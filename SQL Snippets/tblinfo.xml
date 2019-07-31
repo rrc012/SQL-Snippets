@@ -23,9 +23,14 @@ SELECT CONCAT(SCHEMA_NAME(ST.SCHEMA_ID), '.', ST.name) AS Table_Name,
 	  COALESCE(OAREF.Referencing_Entity_Type, 'SQL_STORED_PROCEDURE') AS Referencing_Entity_Type,
 	  COALESCE(OAREF.Referencing_Entities_Count, 0) AS Referencing_Entities_Count,
 	  ST.create_date AS Table_Created_Date,
-	  ST.modify_date AS Table_Modified_Date
+	  ST.modify_date AS Table_Modified_Date,
+	  EP.[value] AS Comments
   FROM sys.tables AS ST
        LEFT JOIN sys.identity_columns AS IC ON ST.object_id = IC.object_id
+       LEFT JOIN sys.extended_properties AS EP ON ST.object_id = EP.major_id
+             AND EP.name = 'MS_Description'
+             AND EP.minor_id = 0
+             AND EP.class_desc = 'OBJECT_OR_COLUMN'
 	  CROSS APPLY (SELECT SUM(SP.row_count) AS Row_Count FROM sys.dm_db_partition_stats AS SP WHERE ST.object_id = SP.object_id AND SP.index_id &lt; 2) CASP
 	  OUTER APPLY (SELECT COUNT(1) AS NonClustered_Idx_Count FROM sys.indexes AS IDX WHERE ST.object_id = IDX.object_id AND IDX.type_desc = 'NONCLUSTERED') OAIX
 	  OUTER APPLY (SELECT COUNT(1) AS Default_Constraint_Count FROM sys.default_constraints AS DC WHERE ST.object_id = DC.parent_object_id) OADC
@@ -65,7 +70,8 @@ SELECT DISTINCT T1.Table_Name,
 	  OAREF.Referencing_Entity_Name,
 	  T1.Referencing_Entity_Type,
        T1.Table_Created_Date,
-       T1.Table_Modified_Date
+       T1.Table_Modified_Date,
+	  T1.Comments
   FROM LIST_TABLES AS T1
 	  OUTER APPLY (SELECT (STUFF(
 						    (SELECT CONCAT(CHAR(10), FK.Table_is_referenced_by_Foreign_Key)
@@ -110,9 +116,10 @@ SELECT Table_Name,
 	  ISNULL([VIEW], 'N/A') AS Referencing_Views,
        ISNULL(LEN([VIEW]) - LEN(REPLACE([VIEW], CHAR(10), '')) + 1, 0) AS Referencing_Views_Count,
        Table_Created_Date,
-       Table_Modified_Date	  	 	
+       Table_Modified_Date,
+	  Comments
   FROM APPEND_REF
  PIVOT (MAX(Referencing_Entity_Name) FOR Referencing_Entity_Type IN ([SQL_STORED_PROCEDURE], [SQL_TRIGGER], [VIEW])) PVT
-;</Replacement>
+ ORDER BY 1;</Replacement>
   <CursorPositionMarker>#</CursorPositionMarker>
 </AutoReplacement>

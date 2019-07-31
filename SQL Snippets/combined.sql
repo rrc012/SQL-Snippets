@@ -86,7 +86,8 @@ SELECT IIF(SO.type = 'TT', SCHEMA_NAME(STT.schema_id), SCHEMA_NAME(SO.schema_id)
 	  ISNULL(DC.name, '-') AS Default_Constraint_Name,
 	  ISNULL(DC.definition, '-') AS Default_Value,
        ISNULL(CKC.name, '-') AS Check_Constraint_Name,
-	  ISNULL(CKC.definition, '-') AS Check_Value
+	  ISNULL(CKC.definition, '-') AS Check_Value,
+       EP.[value] AS Comments
   FROM sys.columns AS SC
        LEFT JOIN sys.check_constraints AS CKC ON SC.object_id = CKC.parent_object_id
 	        AND SC.column_id = CKC.parent_column_id
@@ -98,6 +99,10 @@ SELECT IIF(SO.type = 'TT', SCHEMA_NAME(STT.schema_id), SCHEMA_NAME(SO.schema_id)
  	  LEFT JOIN sys.table_types AS STT ON SC.object_id = STT.type_table_object_id
        LEFT JOIN sys.types AS SD ON SC.system_type_id = SD.system_type_id
 	        AND SC.user_type_id = SD.user_type_id
+       LEFT JOIN sys.extended_properties AS EP ON SC.object_id = EP.major_id
+             AND SC.column_id = EP.minor_id
+             AND EP.name = 'MS_Description'
+             AND EP.class_desc = 'OBJECT_OR_COLUMN'
 )
 SELECT *
   FROM LIST_COLUMNS
@@ -106,8 +111,7 @@ SELECT *
    --AND Object_Type = ''
    --AND ObjectName = ''
    --AND Column_Name = ''
- ORDER BY 1, 3, 2
-;
+ ORDER BY 1, 3, 2;
 
 --colnames
 DECLARE @i VARCHAR(MAX) 
@@ -231,7 +235,7 @@ SELECT referencing_column.name AS Foreign_Key_Column,
 	  referenced_column.precision AS Referenced_Column_Precision,
 	  referenced_column.scale AS Referenced_Column_Scale,
 	  SO.object_id AS Ref_Id,
-	  FKC.constraint_column_id
+	  FKC.constraint_column_id AS FK_Col_Order
   FROM sys.foreign_key_columns AS FKC
        INNER JOIN sys.objects AS SO ON SO.object_id = FKC.constraint_object_id
        INNER JOIN sys.tables AS parent_table ON FKC.parent_object_id = parent_table.object_id
@@ -243,11 +247,13 @@ SELECT referencing_column.name AS Foreign_Key_Column,
        INNER JOIN sys.columns AS referenced_column ON FKC.referenced_object_id = referenced_column.object_id
                                                   AND FKC.referenced_column_id = referenced_column.column_id       
 )
-SELECT FK.name AS Foreign_Key_Name,
-       IIF(FK.is_disabled = 0, 'ENABLED', 'DISABLED') AS FK_Status,
-       parent_schema.name AS Parent_Schema,
+SELECT parent_schema.name AS Parent_Schema,
        parent_table.name AS Parent_Table,
+       IIF(FK.is_disabled = 0, 'ENABLED', 'DISABLED') AS FK_Status,
+       IIF(COUNT(*) OVER (PARTITION BY fk.name) > 1, 'Y', 'N') AS Complex_FK,
+       FK.name AS Foreign_Key_Name,
 	  Foreign_Key_Column,
+       FK_Col_Order,
        referenced_schema.name AS Referenced_Schema,
        referenced_table.name AS Referenced_Table,
 	  Referenced_Column,    	  
@@ -266,8 +272,7 @@ SELECT FK.name AS Foreign_Key_Name,
        INNER JOIN sys.schemas AS referenced_schema ON referenced_schema.schema_id = referenced_table.schema_id
 	  INNER JOIN LIST_FOREIGN_KEY_COLUMNS ON FK.object_id = Ref_Id
  WHERE 1 = 1
- ORDER BY Parent_Schema, Parent_Table, Referenced_Schema, Referenced_Table, constraint_column_id
-;
+ ORDER BY Parent_Schema, Parent_Table, Referenced_Schema, Referenced_Table, FK_Col_Order;
 
 --fktblref
 WITH FK_TABLES
@@ -654,8 +659,8 @@ GO
 SET NOCOUNT ON;
 
 DECLARE @iJEH          TINYINT = 1, --Indicates number of runs for a job based on the date
-        @iStepID       TINYINT = 1, --If NULL, retrieves all the steps for a given job
-        @iRunStatus    TINYINT = 1, --If NULL, retrieves all the statuses for a given job
+        @iStepID       TINYINT, --If NULL, retrieves all the steps for a given job
+        @iRunStatus    TINYINT, --If NULL, retrieves all the statuses for a given job
         @iCharPosition TINYINT,
         @dtJEHDate     DATE,
         @sJobsNameList VARCHAR(1000) = ''; --Enter a comma-separated list of job names        
@@ -711,11 +716,11 @@ SELECT j.name AS JobName,
        h.step_id AS StepID,
        h.step_name AS StepName,
        js.subsystem,
-       CAST(STR(h.run_date,8, 0) AS DATE) AS StartDate,
-       STUFF(STUFF(RIGHT('000000' + CAST (h.run_time AS VARCHAR(6)) ,6),5,0,':'),3,0,':') StartTime,
-       CONVERT(TIME(0), STR(FLOOR(h.run_duration / 10000), 2, 0)
-                      + ':' + RIGHT(STR(FLOOR(h.run_duration / 100), 6, 0), 2)
-                      + ':' + RIGHT(STR(h.run_duration), 2)) AS [ExecutionTime (HH:MM:SS)],
+       SD.StartDate,
+       STUFF(STUFF(RIGHT('000000' + CAST (h.run_time AS VARCHAR(6)),6),5,0,':'),3,0,':') StartTime,
+       TRY_CONVERT(TIME(0), STR(FLOOR(h.run_duration / 10000), 2, 0)
+                          + ':' + RIGHT(STR(FLOOR(h.run_duration / 100), 6, 0), 2)
+                          + ':' + RIGHT(STR(h.run_duration), 2)) AS [ExecutionTime (HH:MM:SS)],
        CASE h.run_status
             WHEN 0 THEN 'Failed'
             WHEN 1 THEN 'Succeeded'
@@ -731,12 +736,13 @@ SELECT j.name AS JobName,
        INNER JOIN dbo.sysjobs AS j ON h.job_id = j.job_id
        INNER JOIN dbo.sysjobsteps AS js ON j.job_id = js.job_id
               AND h.step_id = js.step_id
-       INNER JOIN #JobsNameList AS jnl ON j.name = jnl.job_name              
+       INNER JOIN #JobsNameList AS jnl ON j.name = jnl.job_name
+	  CROSS APPLY (SELECT TRY_CAST(STR(h.run_date,8, 0) AS DATE) AS StartDate) AS SD
  WHERE 1 = 1
    AND h.step_id = COALESCE(@iStepID, h.step_id)
    AND h.run_status = COALESCE(@iRunStatus, h.run_status)
-   AND CAST(STR(h.run_date,8, 0) AS DATE) >= jnl.run_date
- ORDER BY JobName, StartDate DESC, StartTime DESC, StepID;
+   AND SD.StartDate >= jnl.run_date
+ ORDER BY JobName, SD.StartDate DESC, StartTime DESC, StepID;
 
 --jobs
 USE msdb;
@@ -1319,9 +1325,14 @@ SELECT CONCAT(SCHEMA_NAME(ST.SCHEMA_ID), '.', ST.name) AS Table_Name,
 	  COALESCE(OAREF.Referencing_Entity_Type, 'SQL_STORED_PROCEDURE') AS Referencing_Entity_Type,
 	  COALESCE(OAREF.Referencing_Entities_Count, 0) AS Referencing_Entities_Count,
 	  ST.create_date AS Table_Created_Date,
-	  ST.modify_date AS Table_Modified_Date
+	  ST.modify_date AS Table_Modified_Date,
+	  EP.[value] AS Comments
   FROM sys.tables AS ST
        LEFT JOIN sys.identity_columns AS IC ON ST.object_id = IC.object_id
+       LEFT JOIN sys.extended_properties AS EP ON ST.object_id = EP.major_id
+             AND EP.name = 'MS_Description'
+             AND EP.minor_id = 0
+             AND EP.class_desc = 'OBJECT_OR_COLUMN'
 	  CROSS APPLY (SELECT SUM(SP.row_count) AS Row_Count FROM sys.dm_db_partition_stats AS SP WHERE ST.object_id = SP.object_id AND SP.index_id < 2) CASP
 	  OUTER APPLY (SELECT COUNT(1) AS NonClustered_Idx_Count FROM sys.indexes AS IDX WHERE ST.object_id = IDX.object_id AND IDX.type_desc = 'NONCLUSTERED') OAIX
 	  OUTER APPLY (SELECT COUNT(1) AS Default_Constraint_Count FROM sys.default_constraints AS DC WHERE ST.object_id = DC.parent_object_id) OADC
@@ -1361,7 +1372,8 @@ SELECT DISTINCT T1.Table_Name,
 	  OAREF.Referencing_Entity_Name,
 	  T1.Referencing_Entity_Type,
        T1.Table_Created_Date,
-       T1.Table_Modified_Date
+       T1.Table_Modified_Date,
+	  T1.Comments
   FROM LIST_TABLES AS T1
 	  OUTER APPLY (SELECT (STUFF(
 						    (SELECT CONCAT(CHAR(10), FK.Table_is_referenced_by_Foreign_Key)
@@ -1406,10 +1418,11 @@ SELECT Table_Name,
 	  ISNULL([VIEW], 'N/A') AS Referencing_Views,
        ISNULL(LEN([VIEW]) - LEN(REPLACE([VIEW], CHAR(10), '')) + 1, 0) AS Referencing_Views_Count,
        Table_Created_Date,
-       Table_Modified_Date	  	 	
+       Table_Modified_Date,
+	  Comments
   FROM APPEND_REF
  PIVOT (MAX(Referencing_Entity_Name) FOR Referencing_Entity_Type IN ([SQL_STORED_PROCEDURE], [SQL_TRIGGER], [VIEW])) PVT
-;
+ ORDER BY 1;
 
 --tlog
 SELECT Name, 
@@ -1559,14 +1572,18 @@ SELECT CONCAT(OBJECT_SCHEMA_NAME(SV.object_id), '.', SV.name) AS View_Nm,
 	  OBJECT_DEFINITION(SV.object_id) AS View_Definition, 
 	  CC.Column_Count,
 	  SV.Create_Date, 
-	  SV.Modify_Date
+	  SV.Modify_Date,
+	  EP.[value] AS Comments
   FROM sys.views AS SV
+       LEFT JOIN sys.extended_properties AS EP ON SV.object_id = EP.major_id
+             AND EP.name = 'MS_Description'
+             AND EP.minor_id = 0
+             AND EP.class_desc = 'OBJECT_OR_COLUMN'
        CROSS APPLY (SELECT MAX(column_id) AS Column_Count FROM sys.columns AS SC WHERE SV.object_id = SC.object_id) AS CC
  WHERE 1 = 1
    --AND OBJECT_SCHEMA_NAME(SV.object_id) IN ('')
    --AND SV.name LIKE '%%'
- ORDER BY 1
-;
+ ORDER BY 1;
 
 --vwcol
 SELECT SC.name AS Column_Name, 
@@ -1579,14 +1596,18 @@ SELECT SC.name AS Column_Name,
 	  IIF(SC.is_computed = 1, 'YES', 'NO') AS Is_Computed,
 	  IIF(SC.default_object_id != 0, 'YES', 'NO') AS Is_Default,
 	  Create_Date, 
-	  Modify_Date
+	  Modify_Date,
+	  EP.[value] AS Comments
   FROM sys.views AS SV
        INNER JOIN sys.columns AS SC ON SV.object_id = SC.object_id
+       LEFT JOIN sys.extended_properties AS EP ON SV.object_id = EP.major_id
+             AND SC.column_id = EP.minor_id
+             AND EP.name = 'MS_Description'             
+             AND EP.class_desc = 'OBJECT_OR_COLUMN'
  WHERE 1 = 1
    AND OBJECT_SCHEMA_NAME(SV.object_id) IN ('')
    AND SV.name = ''
- ORDER BY SV.object_id, SC.column_id
-;
+ ORDER BY SV.object_id, SC.column_id;
 
 --vwcolref
 SELECT OBJECT_SCHEMA_NAME(SV.object_id) AS View_Schema,

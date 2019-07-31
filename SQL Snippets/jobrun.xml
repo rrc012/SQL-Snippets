@@ -10,11 +10,11 @@ GO
 SET NOCOUNT ON;
 
 DECLARE @iJEH          TINYINT = 1, --Indicates number of runs for a job based on the date
-        @iStepID       TINYINT = 1, --If NULL, retrieves all the steps for a given job
-        @iRunStatus    TINYINT = 1, --If NULL, retrieves all the statuses for a given job
+        @iStepID       TINYINT, --If NULL, retrieves all the steps for a given job
+        @iRunStatus    TINYINT, --If NULL, retrieves all the statuses for a given job
         @iCharPosition TINYINT,
         @dtJEHDate     DATE,
-        @sJobsNameList VARCHAR(1000) = ''; --Enter a comma-separated list of job names        
+        @sJobsNameList VARCHAR(1000) = '|'; --Enter a comma-separated list of job names        
 
 --Used to hold list of SQL Agent Job names to process
 IF OBJECT_ID('tempdb..#JobsNameList') IS NOT NULL DROP TABLE tempdb..#JobsNameList;
@@ -67,11 +67,11 @@ SELECT j.name AS JobName,
        h.step_id AS StepID,
        h.step_name AS StepName,
        js.subsystem,
-       CAST(STR(h.run_date,8, 0) AS DATE) AS StartDate,
-       STUFF(STUFF(RIGHT('000000' + CAST (h.run_time AS VARCHAR(6)) ,6),5,0,':'),3,0,':') StartTime,
-       CONVERT(TIME(0), STR(FLOOR(h.run_duration / 10000), 2, 0)
-                      + ':' + RIGHT(STR(FLOOR(h.run_duration / 100), 6, 0), 2)
-                      + ':' + RIGHT(STR(h.run_duration), 2)) AS [ExecutionTime (HH:MM:SS)],
+       SD.StartDate,
+       STUFF(STUFF(RIGHT('000000' + CAST (h.run_time AS VARCHAR(6)),6),5,0,':'),3,0,':') StartTime,
+       TRY_CONVERT(TIME(0), STR(FLOOR(h.run_duration / 10000), 2, 0)
+                          + ':' + RIGHT(STR(FLOOR(h.run_duration / 100), 6, 0), 2)
+                          + ':' + RIGHT(STR(h.run_duration), 2)) AS [ExecutionTime (HH:MM:SS)],
        CASE h.run_status
             WHEN 0 THEN 'Failed'
             WHEN 1 THEN 'Succeeded'
@@ -87,11 +87,12 @@ SELECT j.name AS JobName,
        INNER JOIN dbo.sysjobs AS j ON h.job_id = j.job_id
        INNER JOIN dbo.sysjobsteps AS js ON j.job_id = js.job_id
               AND h.step_id = js.step_id
-       INNER JOIN #JobsNameList AS jnl ON j.name = jnl.job_name              
+       INNER JOIN #JobsNameList AS jnl ON j.name = jnl.job_name
+	  CROSS APPLY (SELECT TRY_CAST(STR(h.run_date,8, 0) AS DATE) AS StartDate) AS SD
  WHERE 1 = 1
    AND h.step_id = COALESCE(@iStepID, h.step_id)
    AND h.run_status = COALESCE(@iRunStatus, h.run_status)
-   AND CAST(STR(h.run_date,8, 0) AS DATE) &gt;= jnl.run_date
- ORDER BY JobName, StartDate DESC, StartTime DESC, StepID;</Replacement>
-  <CursorPositionMarker />
+   AND SD.StartDate &gt;= jnl.run_date
+ ORDER BY JobName, SD.StartDate DESC, StartTime DESC, StepID;</Replacement>
+  <CursorPositionMarker>|</CursorPositionMarker>
 </AutoReplacement>

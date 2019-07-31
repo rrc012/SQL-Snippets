@@ -8,13 +8,17 @@
 	  OBJECT_DEFINITION(SV.object_id) AS View_Definition, 
 	  CC.Column_Count,
 	  SV.Create_Date, 
-	  SV.Modify_Date
+	  SV.Modify_Date,
+	  EP.[value] AS Comments
   FROM sys.views AS SV
+       LEFT JOIN sys.extended_properties AS EP ON SV.object_id = EP.major_id
+             AND EP.name = 'MS_Description'
+             AND EP.minor_id = 0
+             AND EP.class_desc = 'OBJECT_OR_COLUMN'
        CROSS APPLY (SELECT MAX(column_id) AS Column_Count FROM sys.columns AS SC WHERE SV.object_id = SC.object_id) AS CC
  WHERE 1 = 1
    --AND OBJECT_SCHEMA_NAME(SV.object_id) IN ('')
    --AND SV.name LIKE '%%'
- ORDER BY 1
-;</Replacement>
+ ORDER BY 1;</Replacement>
   <CursorPositionMarker>#</CursorPositionMarker>
 </AutoReplacement>

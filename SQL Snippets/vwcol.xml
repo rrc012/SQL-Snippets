@@ -14,13 +14,17 @@
 	  IIF(SC.is_computed = 1, 'YES', 'NO') AS Is_Computed,
 	  IIF(SC.default_object_id != 0, 'YES', 'NO') AS Is_Default,
 	  Create_Date, 
-	  Modify_Date
+	  Modify_Date,
+	  EP.[value] AS Comments
   FROM sys.views AS SV
        INNER JOIN sys.columns AS SC ON SV.object_id = SC.object_id
+       LEFT JOIN sys.extended_properties AS EP ON SV.object_id = EP.major_id
+             AND SC.column_id = EP.minor_id
+             AND EP.name = 'MS_Description'             
+             AND EP.class_desc = 'OBJECT_OR_COLUMN'
  WHERE 1 = 1
    AND OBJECT_SCHEMA_NAME(SV.object_id) IN ('')
    AND SV.name = ''
- ORDER BY SV.object_id, SC.column_id
-;</Replacement>
+ ORDER BY SV.object_id, SC.column_id;</Replacement>
   <CursorPositionMarker>#</CursorPositionMarker>
 </AutoReplacement>

@@ -18,7 +18,7 @@ SELECT referencing_column.name AS Foreign_Key_Column,
 	  referenced_column.precision AS Referenced_Column_Precision,
 	  referenced_column.scale AS Referenced_Column_Scale,
 	  SO.object_id AS Ref_Id,
-	  FKC.constraint_column_id
+	  FKC.constraint_column_id AS FK_Col_Order
   FROM sys.foreign_key_columns AS FKC
        INNER JOIN sys.objects AS SO ON SO.object_id = FKC.constraint_object_id
        INNER JOIN sys.tables AS parent_table ON FKC.parent_object_id = parent_table.object_id
@@ -30,11 +30,13 @@ SELECT referencing_column.name AS Foreign_Key_Column,
        INNER JOIN sys.columns AS referenced_column ON FKC.referenced_object_id = referenced_column.object_id
                                                   AND FKC.referenced_column_id = referenced_column.column_id       
 )
-SELECT FK.name AS Foreign_Key_Name,
-       IIF(FK.is_disabled = 0, 'ENABLED', 'DISABLED') AS FK_Status,
-       parent_schema.name AS Parent_Schema,
+SELECT parent_schema.name AS Parent_Schema,
        parent_table.name AS Parent_Table,
+       IIF(FK.is_disabled = 0, 'ENABLED', 'DISABLED') AS FK_Status,
+       IIF(COUNT(*) OVER (PARTITION BY fk.name) &gt; 1, 'Y', 'N') AS Complex_FK,
+       FK.name AS Foreign_Key_Name,
 	  Foreign_Key_Column,
+       FK_Col_Order,
        referenced_schema.name AS Referenced_Schema,
        referenced_table.name AS Referenced_Table,
 	  Referenced_Column,    	  
@@ -53,7 +55,6 @@ SELECT FK.name AS Foreign_Key_Name,
        INNER JOIN sys.schemas AS referenced_schema ON referenced_schema.schema_id = referenced_table.schema_id
 	  INNER JOIN LIST_FOREIGN_KEY_COLUMNS ON FK.object_id = Ref_Id
  WHERE 1 = 1
- ORDER BY Parent_Schema, Parent_Table, Referenced_Schema, Referenced_Table, constraint_column_id
-;</Replacement>
+ ORDER BY Parent_Schema, Parent_Table, Referenced_Schema, Referenced_Table, FK_Col_Order;</Replacement>
   <CursorPositionMarker>#</CursorPositionMarker>
 </AutoReplacement>

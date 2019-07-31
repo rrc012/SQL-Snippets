@@ -3,7 +3,7 @@
   <Token>jobs</Token>
   <Name />
   <CaseSensitive>false</CaseSensitive>
-  <SelectReplacement>true</SelectReplacement>
+  <SelectReplacement>false</SelectReplacement>
   <Replacement>USE msdb;
 GO
 
@@ -13,7 +13,7 @@ DECLARE @iStepID       TINYINT = NULL,     --IF NULL FETCH ALL THE STEPS ASSOCIA
         @iProxyID      TINYINT = NULL,     --IF 0 FETCH ONLY THOSE JOBS THAT HAVE PROXIES ASSOCIATED WITH IT.
         @sFreqType     VARCHAR(10) = NULL, --DAILY/WEEKLY/MONTHLY etc
         @sSubSystem    VARCHAR(10) = NULL, --TSQL/SSIS/CmdExec/PowerShell etc
-        @sJobsNameList VARCHAR(1000) = '', --IF BLANK FETCH ALL JOBS, ELSE FETCH THE SPECIFIED JOB DETAILS. ENTER A COMMA-SEPARATED LIST OF JOB NAMES.
+        @sJobsNameList VARCHAR(1000) = '|', --IF BLANK FETCH ALL JOBS, ELSE FETCH THE SPECIFIED JOB DETAILS. ENTER A COMMA-SEPARATED LIST OF JOB NAMES.
         @iCharPosition TINYINT;
 
 --Used to hold list of SQL Agent Job names to process
@@ -161,5 +161,5 @@ SELECT j.name AS job_name,
    AND js.subsystem LIKE COALESCE(CONCAT('%', @sSubSystem, '%'), js.subsystem)
    AND COALESCE(px.proxy_id, 0) &gt; COALESCE(@iProxyID, -1)
  ORDER BY j.name, js.step_id;</Replacement>
-  <CursorPositionMarker>#</CursorPositionMarker>
+  <CursorPositionMarker>|</CursorPositionMarker>
 </AutoReplacement>
