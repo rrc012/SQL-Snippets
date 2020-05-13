@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Your Ass">
+  <Items>
+    <LogicalFolder Name="Connections" Type="2" Sorted="true">
+      <Items>
+        <ConnectionNode Name="(local)\SQLSERVER2014:HUMMUS\Guy">
+          <Created>2014-12-08T13:17:32.1068613+02:00</Created>
+          <Type>SQL</Type>
+          <Server>(local)\SQLSERVER2014</Server>
+          <UserName />
+          <Authentication>Windows Authentication</Authentication>
+          <InitialDB />
+          <LoginTimeout>15</LoginTimeout>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+      </Items>
+    </LogicalFolder>
+    <LogicalFolder Name="Queries" Type="0" Sorted="true">
+      <Items>
+        <FileNode Name="010 - The Problem with Functions.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>010 - The Problem with Functions.sql</FullPath>
+        </FileNode>
+        <FileNode Name="020 - Calculating Running Totals.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>020 - Calculating Running Totals.sql</FullPath>
+        </FileNode>
+        <FileNode Name="030 - SYSDATETIME vs. GETDATE.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>030 - SYSDATETIME vs. GETDATE.sql</FullPath>
+        </FileNode>
+        <FileNode Name="040 - Managing Nested Transactions.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>040 - Managing Nested Transactions.sql</FullPath>
+        </FileNode>
+        <FileNode Name="050 - Update Top N Rows.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>050 - Update Top N Rows.sql</FullPath>
+        </FileNode>
+        <FileNode Name="060 - Plan Caching.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>060 - Plan Caching.sql</FullPath>
+        </FileNode>
+        <FileNode Name="070 - 7 Ways to Execute Your Query.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>070 - 7 Ways to Execute Your Query.sql</FullPath>
+        </FileNode>
+        <FileNode Name="080 - Non-Uniform Data Distribution.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>080 - Non-Uniform Data Distribution.sql</FullPath>
+        </FileNode>
+        <FileNode Name="090 - Changing Parameters Values.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>090 - Changing Parameters Values.sql</FullPath>
+        </FileNode>
+        <FileNode Name="100 - Simple vs. Forced Parameterization.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>100 - Simple vs. Forced Parameterization.sql</FullPath>
+        </FileNode>
+        <FileNode Name="110 - Optimize Search Arguments.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>110 - Optimize Search Arguments.sql</FullPath>
+        </FileNode>
+        <FileNode Name="120 - Computed Columns.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>120 - Computed Columns.sql</FullPath>
+        </FileNode>
+        <FileNode Name="130 - Data Type Conversions.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>130 - Data Type Conversions.sql</FullPath>
+        </FileNode>
+        <FileNode Name="140 - The Problem with Table Variables.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>140 - The Problem with Table Variables.sql</FullPath>
+        </FileNode>
+        <FileNode Name="150 - Divide and Rule.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>150 - Divide and Rule.sql</FullPath>
+        </FileNode>
+        <FileNode Name="160 - The Problem with Cursors.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>160 - The Problem with Cursors.sql</FullPath>
+        </FileNode>
+        <FileNode Name="170 - CROSS APPLY vs. ROW_NUMBER.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>170 - CROSS APPLY vs. ROW_NUMBER.sql</FullPath>
+        </FileNode>
+        <FileNode Name="180 - Working with Hierarchies.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>180 - Working with Hierarchies.sql</FullPath>
+        </FileNode>
+        <FileNode Name="190 - Triggers.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>190 - Triggers.sql</FullPath>
+        </FileNode>
+        <FileNode Name="200 - The Ascending Key Problem.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:(local)\SQLSERVER2014:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>(local)\SQLSERVER2014</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>200 - The Ascending Key Problem.sql</FullPath>
+        </FileNode>
+      </Items>
+    </LogicalFolder>
+    <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
+      <Items />
+    </LogicalFolder>
+  </Items>
+</SqlWorkbenchSqlProject>

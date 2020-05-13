@@ -72,7 +72,7 @@ SELECT j.name AS job_name,
        LEFT JOIN dbo.sysjobschedules AS jss ON j.job_id = jss.job_id
        LEFT JOIN dbo.sysschedules AS ss ON jss.schedule_id = ss.schedule_id
        LEFT JOIN dbo.sysproxies AS px ON js.proxy_id = px.proxy_id
-       --Removing all the characters in CMD starting from CMD'" /SERVER "*" /CHECKPOINTING OFF /REPORTING E' in the cmd to extract the anme of the SSIS package which is called by a step in a SQL Job
+       --Removing all the characters in CMD starting from CMD'" /SERVER "*" /CHECKPOINTING OFF /REPORTING E' in the cmd to extract the name of the SSIS package which is called by a step in a SQL Job
        OUTER APPLY (SELECT STUFF(js.command, CHARINDEX('" /SERVER', js.command), LEN(js.command), '') AS cleanup1) AS p1
        --Removing all instances of '"\' &amp; '/SQL ' &amp; '\"' from cleanup1 to extract the name of the SSIS Package and the Folder under which it is present
        OUTER APPLY (SELECT '\' + REPLACE(REPLACE(REPLACE(REPLACE(p1.cleanup1, '"\', ''), '/SQL ', ''), '\"', ''), '"', '') AS ssis_package_path) AS pkg

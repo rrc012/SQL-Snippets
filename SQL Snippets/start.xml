@@ -17,7 +17,7 @@ SELECT j.name, js.step_id, js.step_name, js.subsystem
  ORDER BY 1, 2;
 --*/
  
-EXEC dbo.sp_start_job @job_name = N'',
+EXEC dbo.sp_start_job @job_name = N'#',
                       @step_name = NULL;</Replacement>
   <CursorPositionMarker>#</CursorPositionMarker>
 </AutoReplacement>

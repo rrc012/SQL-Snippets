@@ -4,6 +4,10 @@
   <Name />
   <CaseSensitive>false</CaseSensitive>
   <SelectReplacement>false</SelectReplacement>
-  <Replacement>update # set where </Replacement>
+  <Replacement>UPDATE T
+   SET 
+  FROM  AS T
+ WHERE 1 = 1
+   AND ;</Replacement>
   <CursorPositionMarker>#</CursorPositionMarker>
 </AutoReplacement>

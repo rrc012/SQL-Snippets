@@ -652,73 +652,284 @@ INSERT INTO
 --j
 INNER JOIN 
 
---jobs
+--jobhelp
+EXEC msdb..sp_help_job @job_name = '',
+                       @job_aspect = 'JOB';
+
+--jobpx
+SELECT j.name AS 'job_name',
+       js.step_id,
+       js.step_name,
+       js.subsystem,
+       js.last_run_date,
+       js.proxy_id,
+       px.name AS 'proxy_name'
+  FROM msdb.dbo.sysjobsteps AS js
+       LEFT JOIN msdb.dbo.sysproxies AS px ON js.proxy_id = px.proxy_id
+       LEFT JOIN msdb.dbo.sysjobs AS j ON js.job_id = j.job_id
+ WHERE 1 = 1
+   AND js.proxy_id > 0
+   --AND j.name = ''
+   --AND px.name = ''
+ ORDER BY 1, 2;
+
+--jobrun
 USE msdb
 GO
 
 SET NOCOUNT ON;
 
-DECLARE @iLastRun TINYINT = 1, --Indicates number of last runs for a job
-        @dtLastRunDate DATE,
-        @sJobName VARCHAR(100) = '';
+DECLARE @iJEH TINYINT = 2, --Indicates number of runs for a job based on the date
+        @iStepID TINYINT = 1, --If NULL, retrieves all the steps for a given job
+        @iRunStatus TINYINT = 1, --If NULL, retrieves all the statuses for a given job
+        @iCharPosition TINYINT,
+        @dtJEHDate DATE,
+	   --Enter a comma-separated list of job names
+        @sJobNameList VARCHAR(1000) = '';
 
-;WITH LastRun
+--Used to hold list of SQL Agent Job names to process
+IF OBJECT_ID('tempdb..#JobNamesList') IS NOT NULL DROP TABLE tempdb..#JobNamesList;
+CREATE TABLE #JobNamesList 
+(
+ job_name VARCHAR(128),
+ run_date DATE
+);
+
+-- Process list
+SET @sJobNameList = @sJobNameList + ',';
+
+WHILE CHARINDEX(',', @sJobNameList) > 0
+BEGIN
+	SET @iCharPosition = CHARINDEX(',', @sJobNameList)
+	INSERT INTO #JobNamesList (job_name)
+	SELECT LTRIM(RTRIM(LEFT(@sJobNameList, @iCharPosition - 1)));
+	SET @sJobNameList = STUFF(@sJobNameList, 1, @iCharPosition, '');
+END  -- While loop
+
+;WITH JEH
 AS
 (
-SELECT ROW_NUMBER() OVER(ORDER BY h.run_date DESC) AS [nRun(s)],
-       h.run_date
+SELECT j.name AS job_name,
+       ROW_NUMBER() OVER(PARTITION BY j.name ORDER BY j.name, CA.run_date DESC) AS [nRun(s)],
+       CA.run_date
   FROM dbo.sysjobhistory AS h
        INNER JOIN dbo.sysjobs AS j ON h.job_id = j.job_id
- WHERE j.name = @sJobName
- GROUP BY run_date
-)
-SELECT @dtLastRunDate = CAST(CONVERT(VARCHAR(10), run_date, 101) AS DATE)
-  FROM LastRun
- WHERE [nRun(s)] = @iLastRun;
-
-;WITH JobExecution
+       INNER JOIN #JobNamesList AS jnl ON j.name = jnl.job_name
+       CROSS APPLY (SELECT CAST(CONVERT(VARCHAR(10), h.run_date, 101) AS DATE) AS run_date) CA
+ GROUP BY j.name, CA.run_date
+),
+LastRun
 AS
 (
+SELECT JEH.job_name, MIN(JEH.run_date) AS Earliest_Run_Date
+  FROM JEH
+ WHERE [nRun(s)] = IIF(@iJEH > [nRun(s)], [nRun(s)], @iJEH)
+ GROUP BY JEH.job_name
+)
+UPDATE JNL
+   SET run_date = Earliest_Run_Date
+  FROM LastRun AS LR
+       INNER JOIN #JobNamesList AS JNL ON LR.job_name = JNL.job_name
+
+--SELECT * FROM #JobNamesList;
+
 SELECT j.name AS JobName,
-       j.description AS JobDescription,
+       --j.description AS JobDescription,
        h.step_id AS StepID,
        h.step_name AS StepName,
        js.subsystem,
-       js.command,
-       js.database_name,
-       js.output_file_name,
        CAST(STR(h.run_date,8, 0) AS DATE) AS StartDate,
        STUFF(STUFF(RIGHT('000000' + CAST (h.run_time AS VARCHAR(6)) ,6),5,0,':'),3,0,':') StartTime,
        CONVERT(TIME(0), STR(FLOOR(h.run_duration / 10000), 2, 0)
                       + ':' + RIGHT(STR(FLOOR(h.run_duration / 100), 6, 0), 2)
                       + ':' + RIGHT(STR(h.run_duration), 2)) AS [ExecutionTime (HH:MM:SS)],
-       CASE H.run_status
+       CASE h.run_status
             WHEN 0 THEN 'Failed'
             WHEN 1 THEN 'Succeeded'
             WHEN 2 THEN 'Retry'
             WHEN 3 THEN 'Cancelled'
             WHEN 4 THEN 'In Progress'
        END AS ExecutionStatus,
+       js.command,
+       js.database_name,
+       js.output_file_name,
        h.message MessageGenerated
   FROM dbo.sysjobhistory AS h
        INNER JOIN dbo.sysjobs AS j ON h.job_id = j.job_id
        INNER JOIN dbo.sysjobsteps AS js ON j.job_id = js.job_id
               AND h.step_id = js.step_id
-)
-SELECT *
-  FROM JobExecution
+       INNER JOIN JobNamesList AS jnl ON j.name = jnl.job_name              
  WHERE 1 = 1
-   AND StepID > 0
-   AND ExecutionStatus != 'In Progress'
-   AND JobName = @sJobName
-   AND StartDate >= @dtLastRunDate
- ORDER BY StartDate, StartTime, StepID;
+   AND h.step_id = COALESCE(@iStepID, h.step_id)
+   AND h.run_status = COALESCE(@iRunStatus, h.run_status)
+   AND CAST(STR(h.run_date,8, 0) AS DATE) >= jnl.run_date
+ ORDER BY JobName, StartDate DESC, StartTime DESC, StepID;
+
+--jobs
+USE msdb;
+GO
+
+SET NOCOUNT ON;
+
+DECLARE @sJobName SYSNAME = NULL, --IF NULL FETCH ALL JOBS, ELSE FETCH THE SPECIFIED JOB DETAILS
+        @iStepID TINYINT = NULL, --IF NULL FETCH ALL THE STEPS ASSOCIATED WITH A JOB, ELSE FETCH THE SPECIFIED STEP DETAILS TIED TO A JOB
+	   @iProxyID TINYINT = NULL, --IF 0 FETCH ONLY THOSE JOBS THAT HAVE PROXIES ASSOCIATED WITH IT
+	   @sFreqType VARCHAR(10) = NULL, --DAILY/WEEKLY/MONTHLY etc
+	   @sSubSystem VARCHAR(10) = NULL; --TSQL/SSIS/CmdExec/PowerShell etc
+
+SELECT j.name AS job_name,
+       px.name AS proxy_name,
+       j.description AS job_description,
+	  j.start_step_id,
+       js.step_id,
+       js.step_name,
+	  ss.name AS schedule_name,
+       ft.freq_type,
+       fi.freq_interval,
+	  fst.freq_subday_type,
+/*       
+       ss.freq_subday_interval,
+       ss.freq_relative_interval,
+       ss.freq_recurrence_factor,
+       ss.active_start_date,
+       ss.active_end_date,
+       ss.active_start_time,
+       ss.active_end_time,
+--*/
+       js.subsystem,
+       js.command,
+       pkg.ssis_package_path,
+       js.database_name,
+       js.output_file_name,
+       j.date_created AS job_created_on,
+       j.date_modified AS job_modified_on,
+       j.version_number AS job_version_number,
+       ss.date_created AS schedule_created_on,
+       ss.date_modified AS schedule_modified_on,
+       ss.version_number AS schedule_version_number
+  FROM dbo.sysjobs AS j
+       LEFT JOIN dbo.sysjobsteps AS js ON j.job_id = js.job_id
+       LEFT JOIN dbo.sysjobschedules AS jss ON j.job_id = jss.job_id
+       LEFT JOIN dbo.sysschedules AS ss ON jss.schedule_id = ss.schedule_id
+       LEFT JOIN dbo.sysproxies AS px ON js.proxy_id = px.proxy_id
+       --Removing all the characters in CMD starting from CMD'" /SERVER "*" /CHECKPOINTING OFF /REPORTING E' in the cmd to extract the anme of the SSIS package which is called by a step in a SQL Job
+       OUTER APPLY (SELECT STUFF(js.command, CHARINDEX('" /SERVER', js.command), LEN(js.command), '') AS cleanup1) AS p1
+       --Removing all instances of '"\' & '/SQL ' & '\"' from cleanup1 to extract the name of the SSIS Package and the Folder under which it is present
+       OUTER APPLY (SELECT '\' + REPLACE(REPLACE(REPLACE(REPLACE(p1.cleanup1, '"\', ''), '/SQL ', ''), '\"', ''), '"', '') AS ssis_package_path) AS pkg
+	  OUTER APPLY (SELECT CASE ss.freq_relative_interval
+                                WHEN 1  THEN 'first'
+                                WHEN 2  THEN 'second'
+                                WHEN 4  THEN 'third'
+                                WHEN 8  THEN 'fourth'
+                                WHEN 16 THEN 'last'
+                           END AS freq_relative_interval
+                   ) AS fri
+       OUTER APPLY (SELECT CASE ss.freq_type
+                                WHEN 1   THEN 'Once'
+                                WHEN 4   THEN 'Daily'
+                                WHEN 8   THEN 'Weekly'
+                                WHEN 16  THEN 'Monthly'
+                                WHEN 32  THEN 'Monthly, Relative'
+                                WHEN 64  THEN 'Starts when SQL Server Agent service starts'
+                                WHEN 128 THEN 'Runs when computer is idle'
+                           END AS freq_type
+                   ) AS ft
+        OUTER APPLY (SELECT CASE WHEN ss.freq_type IN (1, 64, 128) THEN 'Unused'
+                                 --Daily
+                                 WHEN ss.freq_type = 4 THEN CONCAT('Every ', freq_interval, ' day(s)')
+                                 --Weekly
+                                 WHEN ss.freq_type = 8 THEN CASE ss.freq_interval
+                                                                 WHEN 1  THEN 'Every Sunday of the week'
+                                                                 WHEN 2  THEN 'Every Monday of the week'
+                                                                 WHEN 4  THEN 'Every Tuesday of the week'
+                                                                 WHEN 8  THEN 'Every Wednesday of the week'
+                                                                 WHEN 16 THEN 'Every Thursday of the week'
+                                                                 WHEN 32 THEN 'Every Friday of the week'
+                                                                 WHEN 64 THEN 'Every Saturday of the week'
+                                                                 ELSE 'Multiple days in a week'
+                                                                 /*
+                                                                 WHEN 3 (1+2) THEN Every Sunday, Monday of the week
+													WHEN 9 (1+4+8) THEN Every Sunday, Tuesday, Wednesday of the week
+													WHEN 62 (2+4+8+16+32) THEN Every Sunday, Monday, Tuesday, Wednesday, Thursday & Friday of the week
+													....so on and so forth
+                                                                 */
+                                                            END
+                                 --Monthly
+                                 WHEN ss.freq_type = 16 THEN CONCAT('On the ',
+                                                                    ss.freq_interval,
+                                                                    CASE ss.freq_interval
+                                                                         WHEN 1  THEN 'st'
+                                                                         WHEN 21 THEN 'st'
+                                                                         WHEN 31 THEN 'st'
+                                                                         WHEN 2  THEN 'nd'
+                                                                         WHEN 22 THEN 'nd'
+                                                                         WHEN 3  THEN 'rd'
+                                                                         WHEN 23 THEN 'rd'
+                                                                         ELSE 'th'
+                                                                    END,
+                                                                    ' day of the month')
+                                 --Monthly, relative (also uses freq_relative_interval)
+                                 WHEN ss.freq_type = 32 THEN  CONCAT('On the ',
+                                                                     fri.freq_relative_interval,
+                                                                     SPACE(1),
+                                                                     CASE ss.freq_interval
+                                                                          WHEN 1  THEN 'Sunday'
+                                                                          WHEN 2  THEN 'Monday'
+                                                                          WHEN 3  THEN 'Tuesday'
+                                                                          WHEN 4  THEN 'Wednesday'
+                                                                          WHEN 5  THEN 'Thursday'
+                                                                          WHEN 6  THEN 'Friday'
+                                                                          WHEN 7  THEN 'Saturday'
+                                                                          WHEN 8  THEN 'day'
+                                                                          WHEN 9  THEN 'weekday'
+                                                                          WHEN 10 THEN 'weekend day'
+                                                                     END,
+                                                                     ' of the month'
+                                                                    )
+                            END AS freq_interval
+                   ) AS fi
+        OUTER APPLY (SELECT STUFF(STUFF(RIGHT(REPLICATE('0', 6) + CAST(ss.active_start_time AS VARCHAR(6)), 6), 3, 0, ':'), 6, 0, ':') AS active_start_time) AS ast
+        OUTER APPLY (SELECT CASE WHEN ss.freq_subday_type = 2 THEN CONCAT(' every ', freq_subday_interval, ' seconds starting at ', ast.active_start_time)
+                                 WHEN ss.freq_subday_type = 4 THEN CONCAT(' every ', freq_subday_interval, ' minutes starting at ', ast.active_start_time)
+                                 WHEN ss.freq_subday_type = 8 THEN CONCAT(' every ', freq_subday_interval, ' hours starting at ',   ast.active_start_time)
+                                 ELSE ' starting at ' + ast.active_start_time
+                            END AS freq_subday_type
+                    ) AS fst
+ WHERE 1 = 1
+   AND j.name LIKE COALESCE(CONCAT('%', @sJobName, '%'), j.name)
+   AND js.step_id >= COALESCE(@iStepID, js.step_id)
+   AND COALESCE(ft.freq_type, '') LIKE COALESCE(CONCAT('%', @sFreqType, '%'), ft.freq_type)
+   AND js.subsystem LIKE COALESCE(CONCAT('%', @sSubSystem, '%'), js.subsystem)
+   AND COALESCE(px.proxy_id, 0) > COALESCE(@iProxyID, -1)
+ ORDER BY j.name, js.step_id;
 
 --jobstatus
 SET NOCOUNT ON;
 
+/*
 DECLARE @job_id UNIQUEIDENTIFIER = (SELECT job_id FROM msdb.dbo.sysjobs WHERE name = '');    
 EXEC master.dbo.xp_sqlagent_enum_jobs 1, 'sa', @job_id;
+--*/
+
+SELECT j.NAME AS job_name, 
+       ISNULL(ja.last_executed_step_id, 0) + 1 AS current_executed_step_id, 
+       js.step_name,
+	  js.subsystem,
+	  js.command,
+	  ja.start_execution_date,
+	  DATEDIFF(mi, ja.start_execution_date, GETDATE()) AS [Execution_Time (Mins)]
+  FROM msdb.dbo.sysjobactivity AS ja 
+       LEFT JOIN msdb.dbo.sysjobhistory AS jh ON ja.job_history_id = jh.instance_id 
+       INNER JOIN msdb.dbo.sysjobs AS j ON ja.job_id = j.job_id 
+       INNER JOIN msdb.dbo.sysjobsteps AS js ON ja.job_id = js.job_id 
+              AND ISNULL(ja.last_executed_step_id, 0) + 1 = js.step_id 
+ WHERE ja.session_id = (SELECT TOP 1 session_id
+                          FROM msdb.dbo.syssessions 
+                         ORDER BY agent_start_date DESC) 
+   AND ja.start_execution_date IS NOT NULL 
+   AND ja.stop_execution_date IS NULL
+   --AND j.NAME LIKE '%%'
+ ORDER BY job_name;
 
 --lac
 ;WITH SUS
