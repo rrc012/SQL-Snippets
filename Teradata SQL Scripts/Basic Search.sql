@@ -13,8 +13,9 @@ SELECT *
 SELECT *
   FROM dbc.tablesv
  WHERE 1 = 1
-   AND DatabaseName = 'HTGPO_Views'
+   AND DatabaseName = ''
    --AND TableKind = 'T'
+   --AND TableName LIKE '%%'
  ORDER BY DatabaseName, TableName;
 
 /****************
@@ -23,8 +24,8 @@ SELECT *
 SELECT *
   FROM DBC.ColumnsV
  WHERE 1 = 1
-   AND DatabaseName = 'HTGPO_Views'
-   AND TableName = 'Item_Package'
+   AND DatabaseName = ''
+   AND TableName = ''
    --AND ColumnName LIKE '%%'
  ORDER BY ColumnName, DatabaseName, TableName;
 
@@ -33,5 +34,5 @@ SELECT *
 **************/
 SELECT TOP 10
      *
-  FROM HTGPO_Views.Item
+  FROM 
  WHERE 1 = 1

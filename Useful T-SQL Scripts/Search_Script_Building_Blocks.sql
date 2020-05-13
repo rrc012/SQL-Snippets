@@ -120,11 +120,12 @@ SELECT DB_NAME() AS database_name,
 
 --Synonyms
 SELECT DB_NAME() AS database_name,
-       name AS synonym_name,
+       SC.name + '.' + SY.name AS synonym_name,
        base_object_name,
        'Synonym' AS search_type
-  FROM sys.synonyms
- WHERE name LIKE '%product%'
+  FROM sys.synonyms AS SY
+       INNER JOIN sys.schemas AS SC ON SY.schema_id = SC.schema_id
+ WHERE SY.name LIKE '%product%'
     OR base_object_name LIKE '%product%'
  ORDER BY 2;
 
@@ -469,7 +470,8 @@ CLOSE SSIS_CURSOR;
 DEALLOCATE SSIS_CURSOR;
  
 UPDATE ##ssis_data
-   SET package_details_text = CONVERT( NVARCHAR(MAX), package_details_XML);
+   SET package_details_text = CONVERT( NVARCHAR(MAX), package_details_XML)
+ WHERE 1 = 1;
  
 SELECT *,
        'SSIS Package (File System)' AS search_type

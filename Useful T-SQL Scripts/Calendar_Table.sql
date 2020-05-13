@@ -13,8 +13,8 @@ DECLARE @ProcStartDate AS DATETIME,
  ===============================================================================
 */  
 		
-SET @ProcStartDate = '01/01/2000';
-SET @ProcEndDate = '12/31/2050';
+SET @ProcStartDate = '01/01/2020';
+SET @ProcEndDate = '04/30/2020';
 SET @Days = DATEDIFF(dd, @ProcStartDate, @ProcEndDate+1);
 
 ;WITH Nbrs_4(Numbers) AS (SELECT 0 UNION SELECT 1),
@@ -40,4 +40,6 @@ SELECT TOP(@Days)
   FROM Nbrs
 )
 SELECT *
-  FROM Calendar;
+  FROM Calendar
+ WHERE 1 = 1
+   AND Is_Weekday != 'Weekend';

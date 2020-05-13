@@ -30,7 +30,7 @@ SET NOCOUNT ON;
 DECLARE @search_string     NVARCHAR(MAX) = 'Department',
         @search_text       NVARCHAR(MAX),
         @search_SSRS       BIT = 0,
-        @search_SSIS_MSDB  BIT = 0,
+        @search_SSIS_MSDB  BIT = 1,
         @search_SSIS_disk  BIT = 0,
 	   @debug_sql         BIT = 0,
 	   @preview_text_size SMALLINT = 200,
@@ -302,7 +302,8 @@ BEGIN
      DEALLOCATE SSIS_CURSOR;
       
      UPDATE ##ssis_data
-        SET package_details_text = CONVERT( NVARCHAR(MAX), package_details_XML);
+        SET package_details_text = CONVERT( NVARCHAR(MAX), package_details_XML)
+      WHERE 1 = 1;
       
      INSERT INTO #object_data
      (object_description, xml_content, text_content, search_type)
@@ -374,11 +375,12 @@ BEGIN
      INSERT INTO #object_data
      (database_name, objectname, objectdefinition, search_type)
      SELECT DB_NAME() AS database_name,
-            name AS synonym_name,
+            SC.name + ''.'' + SY.name AS synonym_name,
             base_object_name,
             ''Synonym'' AS search_type
-       FROM sys.synonyms
-      WHERE name LIKE ''' + @search_string + '''
+       FROM sys.synonyms AS SY
+            INNER JOIN sys.schemas AS SC ON SY.schema_id = SC.schema_id
+      WHERE SY.name LIKE ''' + @search_string + '''
          OR base_object_name LIKE ''' + @search_string + '''
       ORDER BY 2;
      

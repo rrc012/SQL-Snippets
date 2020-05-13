@@ -4,8 +4,8 @@
  Source:       https://blueskybi.wordpress.com/2014/03/18/querying-ssis-packages-from-sql/
  Article Name: Querying SSIS Packages from SQL
  Create Date:  18-MAR-2014
- Description:  This will extract the SSIS data as XML and the XML can be formatted
-               to get the connection manager information.
+ Description:  This query returns the list of Executables used inside a SSIS package
+               and which is deployed on msdb database.
  Revision History:
  15-MAR-2020 - RAGHUNANDAN CUMBAKONAM
                Changed CROSS APPLY to OUTER APPLY
@@ -56,7 +56,7 @@ SELECT PackageName,
        COUNT(*) AS ExecutableCount
   FROM recurse
  WHERE 1 = 1
-   AND PackageName = 'SSIS_SI_Invoice'
+   AND PackageName = ''
    --AND IsDisabled = 'False'
  GROUP BY PackageName, ExecutableLevel, ExecutableType, IsDisabled
  ORDER BY PackageName, ExecutableLevel, ExecutableType;

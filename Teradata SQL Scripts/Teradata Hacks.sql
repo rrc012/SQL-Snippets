@@ -70,4 +70,20 @@ SELECT *
 RETURNS (outkey VARCHAR(10) CHARACTER SET Unicode
         ,tokennum INTEGER
         ,token VARCHAR(50) CHARACTER SET Unicode)
-        ) AS dt
+        ) AS dt;
+
+--This Query provides an equivalent of NTILE function in SQL Server.
+--NTILE(B) OVER (PARTITION BY part_col ORDER BY data_col) 
+COUNT(*) OVER(PARTITION BY part_col) AS N,
+ROW_NUMBER() OVER (PARTITION BY part_col ORDER BY data_col) AS rowno,
+CASE WHEN rowno <= ((N/B)+1) * (N MOD B) THEN (rowno-1) / ((N/B)+1) ELSE (rowno-1 - (N MOD B)) /  (N/B) END + 1 AS 'NTILE';
+
+--This query is equivalent of a CTE with no FROM clause
+;WITH CTE (Nbr)
+AS
+(
+ SELECT * FROM (SELECT 1 AS A) x UNION ALL
+ SELECT * FROM (SELECT 2 AS A) x
+)
+SELECT *
+  FROM CTE;
