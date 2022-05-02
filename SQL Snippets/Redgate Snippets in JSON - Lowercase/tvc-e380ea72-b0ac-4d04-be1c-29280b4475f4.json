@@ -1,0 +1,12 @@
+{
+  "id": "e380ea72-b0ac-4d04-be1c-29280b4475f4",
+  "prefix": "tvc",
+  "description": "Automatically create a table variable (or temp table) in which to store the results of (for example) executing a stored procedure, function or query",
+  "body": "/**\r\nSummary: >\r\nThis is a temporary batch for creating such things as table variables,\r\ntemporary tables or anything else that needs a column list \r\nAuthor: Phil Factor\r\nBased on code from https://www.red-gate.com/hub/product-learning/sql-prompt/building-reusable-table-build-scripts-using-sql-prompt\r\n**/\r\ndeclare @TheExpression NVARCHAR(MAX)=\r\nN'$SELECTEDTEXT$'\r\n\r\nselect 'declare @$NameOfVariable$ table ('+\r\n  stuff ((select ',\r\n    '+QuoteName(coalesce(DetectDuplicateNames.name+'_'+convert(varchar(5),f.column_ordinal),f.name))\r\n     + ' '+ System_type_name + case when is_nullable = 0 then ' not' else ''end+' null'\r\n   --+ case when collation_name is null then '' else ' collate '+collation_name end\r\n   as ThePath\r\n  from sys.dm_exec_describe_first_result_set\r\n  (@TheExpression, null, 1) AS f\r\n  -- use  sys.sp_describe_first_result_set for a batch\r\n  left outer join \r\n    (select name as name from sys.dm_exec_describe_first_result_set\r\n      (@TheExpression, null, 0) where is_hidden=0 \r\n     group by name having count(*)>1) as DetectDuplicateNames\r\n  on DetectDuplicateNames.name=f.name\r\n  WHERE f.is_hidden=0\r\nORDER BY column_ordinal\r\nFOR XML PATH (''), TYPE).value('.', 'varchar(max)'),1,1,'')+')'",
+  "placeholders": [
+    {
+      "name": "NameOfVariable",
+      "defaultValue": "MyTableVariable"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "id": "c95eefcb-9083-4d4c-b508-ad3dc2a9b844",
+  "prefix": "cl",
+  "description": "CREATE SQL Server login",
+  "body": "create login $CURSOR$ /* Add WITH or FROM (below) as appropriate */\r\n--with\r\n--  password = 'password' /* hashed */ /* must change */\r\n--  sid = sid\r\n--  default_database = database\r\n--  default_language = language\r\n--  check_expiration = on | off\r\n--  check_policy = on | off\r\n--  credential = credential_name\r\n--from\r\n--  windows\r\n--    with\r\n--      default_database = database\r\n--      default_language = language\r\n--  certificate certificate_name\r\n--  asymmetric key key_name\r\ngo\r\n"
+}

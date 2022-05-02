@@ -1,0 +1,318 @@
+/* ------------------------------ *\
+
+   © Copyright 2021 by Wingenious
+
+   see README for license details
+
+\* ------------------------------ */
+
+
+--------
+SQLFacts
+--------
+
+SQLFacts is a tool for conducting research on a SQL Server database. It also serves as a tool for generating documentation of the database architecture.
+
+The SQLFacts SQL file is intended for SQL Server 2012 and newer. There's a disabled block of SQL code to exchange with an active block for use with some prior versions.
+
+
+General Information
+===================
+
+PK means primary   key
+AK means alternate key (unique constraint)
+FK means foreign   key
+
+U  means unique
+UF means unique filtered
+S  means simple
+SF means simple filtered
+
+Index_0 means a table as heap
+Index_1 means a table as clustered index
+Index_5 means a table as clustered index (columnstore)
+Index_2 means a       nonclustered index
+Index_6 means a       nonclustered index (columnstore)
+
+index_type (0) means a table as heap
+index_type (1) means a table as clustered index
+index_type (5) means a table as clustered index (columnstore)
+index_type (2) means a       nonclustered index
+index_type (6) means a       nonclustered index (columnstore)
+
+table_type (0) means a table as heap
+table_type (1) means a table as clustered index
+table_type (5) means a table as clustered index (columnstore)
+
+GeneralType   is the type   for a major object, such as a table or a routine
+GeneralSchema is the schema for a major object, such as a table or a routine
+GeneralObject is the name   for a major object, such as a table or a routine
+
+SQLServerType is the type   for a minor object, such as a column or a parameter
+SQLServerName is the name   for a minor object, such as a constraint (PK, AK, FK, check) or an index
+SQLServerFile is the name   for a filegroup
+
+GeneralType (U ) means table
+GeneralType (V ) means view
+GeneralType (P ) means stored procedure
+GeneralType (FN) means user-defined function, scalar
+GeneralType (IF) means user-defined function, table-valued, inline
+GeneralType (TF) means user-defined function, table-valued, multi-statement
+GeneralType (TR) means trigger
+GeneralType (SN) means synonym
+GeneralType (SO) means sequence
+
+ReferenceBy means object caller
+ReferenceOf means object called
+
+
+SQLFacts Result Sets, The Facts
+===============================
+
+-- SQLFacts <> 01 Filegroups
+
+This fact is a list of filegroups for the database.
+
+The Index columns are counts of how many tables/indexes are located, in whole or in part, in each filegroup.
+
+-- SQLFacts <> 02 Database Files
+
+This fact is a list of database files for the database.
+
+The Percent column and the GBs_ADD column are mutually exclusive. Only one of them will contain a non-zero file growth value.
+
+-- SQLFacts <> 03 Database Users
+
+This fact is a list of database users and their corresponding fixed database roles.
+
+-- SQLFacts <> 04 Schemas
+
+This fact is a list of schemas, with a count of various types of objects in each schema.
+
+The SQLFacts SQL code provides an easy way to customize which schemas are included in the analysis.
+
+-- SQLFacts <> 05 Schema Permissions
+
+This fact is a list of schema-level permissions for roles/users.
+
+-- SQLFacts <> 06 Table Details, by name
+
+This fact is a list of tables, with details about associated objects, row counts, and storage requirements.
+
+A value of (0) for PKs means the table has no primary key.
+
+FKs_P contains the number of parents.
+FKs_C contains the number of children.
+
+Checks contains the number of check constraints.
+
+From/Plus contains the seed/increment for an IDENTITY column.
+
+GBs_Table contains the space used by the table itself (see table_type).
+
+GBs_Indexes contains the space used by all nonclustered indexes (see Indexes).
+
+-- SQLFacts <> 07 Table Details, by row count
+
+This fact is the same as above, with a different ORDER BY clause.
+
+-- SQLFacts <> 08 Partitions (Table)
+
+This fact is a list of table partitions, by schema/object, with details about each partition.
+
+-- SQLFacts <> 09 Partitions (Index)
+
+This fact is a list of index partitions, by schema/object, with details about each partition.
+
+The list includes nonclustered indexes where the partitioning is not aligned with the corresponding table.
+
+The list excludes nonclustered indexes where the partitioning is     aligned with the corresponding table.
+
+-- SQLFacts <> 10 Primary Keys
+
+This fact is a list of primary key constraints.
+
+-- SQLFacts <> 11 Alternate Keys
+
+This fact is a list of alternate key constraints (unique constraints).
+
+-- SQLFacts <> 12 Indexes
+
+This fact is a list of indexes, other than those supporting PKs and AKs.
+
+-- SQLFacts <> 13 Foreign Keys
+
+This fact is a list of foreign key constraints.
+
+-- SQLFacts <> 14 Check Constraints
+
+This fact is a list of check constraints.
+
+-- SQLFacts <> 15 Triggers
+
+This fact is a list of triggers.
+
+-- SQLFacts <> 16 Table Columns
+
+This fact is a list of columns in tables.
+
+-- SQLFacts <> 17 Routine Columns
+
+This fact is a list of columns in routines (views and functions).
+
+-- SQLFacts <> 18 Routine Parameters
+
+This fact is a list of parameters in routines (stored procedures and functions).
+
+-- SQLFacts <> 19 Table/Routine Permissions
+
+This fact is a list of object-level permissions for roles/users.
+
+-- SQLFacts <> 20 Sequences
+
+This fact is a list of sequences, for SQL Server 2012 and newer.
+
+The SQLFacts SQL file must be adjusted to avoid failure when used with prior versions. 
+
+-- SQLFacts <> 21 Synonyms
+
+This fact is a list of synonyms.
+
+-- SQLFacts <> 22 External References
+
+This fact is a list of external references by routines.
+
+-- SQLFacts <> 23 Internal References, by object caller
+
+This fact is a list of internal references between routines.
+
+-- SQLFacts <> 24 Internal References, by object called
+
+This fact is the same as above, with a different ORDER BY clause.
+
+-- SQLFacts <> 25 Table Summary, by name
+
+This fact is a list of tables, with summary information about associated objects and references.
+
+The summary information is weighted and combined to derive an estimate of prominence.
+
+The layer value defines an order for processing that would cause no referential integrity violations.
+
+A value of (-1) for layer indicates the object is involved in a circular reference (self references are ignored).
+
+A series of INSERT operations must be done in layer order, going from low to high.
+
+A series of DELETE operations must be done in layer order, going from high to low.
+
+A row in the list with NULL values indicates a table without a primary key.
+
+-- SQLFacts <> 26 Table Summary, by layer
+
+This fact is the same as above, with a different ORDER BY clause.
+
+-- SQLFacts <> 27 Table Summary, by estimate
+
+This fact is the same as above, with a different ORDER BY clause.
+
+-- SQLFacts <> 28 Routine Summary, by name
+
+This fact is a list of routines, with summary information about associated objects and references.
+
+The summary information is weighted and combined to derive an estimate of prominence.
+
+The layer value defines an order for creation that would cause no warning messages.
+
+A value of (-1) for layer indicates the object is involved in a circular reference (self references are ignored).
+
+-- SQLFacts <> 29 Routine Summary, by layer
+
+This fact is the same as above, with a different ORDER BY clause.
+
+-- SQLFacts <> 30 Routine Summary, by estimate
+
+This fact is the same as above, with a different ORDER BY clause.
+
+-- SQLFacts <> 31 Data Type Analysis (Primary Keys)
+
+This fact is a list of the data types and properties used for primary keys.
+
+It quickly reveals combinations of data types and properties that may be unexpected inconsistencies.
+
+-- SQLFacts <> 32 Data Type Analysis (Table Columns)
+
+This fact is a list of the data types and properties used for all table columns.
+
+It quickly reveals combinations of data types and properties that may be unexpected inconsistencies.
+
+-- SQLFacts <> 33 Data Type Analysis (Routine Parameters)
+
+This fact is a list of the data types and properties used for all routine parameters.
+
+It quickly reveals combinations of data types and properties that may be unexpected inconsistencies.
+
+-- SQLFacts <> 34 Name Analysis (Table Columns)
+
+This fact is a list of the names used for all table columns.
+
+It quickly reveals spellings of names that may be unexpected inconsistencies.
+
+-- SQLFacts <> 35 Name Analysis (Routine Parameters)
+
+This fact is a list of the names used for all routine parameters.
+
+It quickly reveals spellings of names that may be unexpected inconsistencies.
+
+-- SQLFacts <> 36 Foreign Keys To Consider
+
+This fact is a list of potential foreign keys that appear to be valid and do not exist.
+
+-- SQLFacts <> 37 Foreign Key Indexes
+
+This fact is a list of existing foreign keys and their supporting indexes.
+
+A row in the list with NULL values indicates a foreign key with no supporting index.
+
+-- SQLFacts <> 38 Index Redundancy
+
+This fact is a list of pairs of indexes where one index key is a subset of the other index key.
+
+-- SQLFacts <> 39 Questionable Indexes
+
+This fact is a list of indexes with undesirable characteristics, such as wide index keys.
+
+-- SQLFacts <> 40 Questionable Tables
+
+This fact is a list of tables with undesirable characteristics, such as no primary keys.
+
+-- SQLFacts <> 41 Questionable Foreign Keys
+
+This fact is a list of foreign key constraints that are untrusted and/or disabled.
+
+-- SQLFacts <> 42 Questionable Constraints
+
+This fact is a list of check constraints that are untrusted and/or disabled.
+
+-- SQLFacts <> 43 Questionable Defaults
+
+This fact is a list of deprecated default objects and their table/column bindings.
+
+-- SQLFacts <> 44 Questionable Routines
+
+This fact is a list of routines whose SQL code uses undesirable features or syntax.
+
+-- SQLFacts <> 45 Questionable Data Types
+
+This fact is a list of table/routine columns with undesirable data types.
+
+-- SQLFacts <> 46 Questionable Names
+
+This fact is a list of objects (or columns) whose names contain inappropriate characters.
+
+-- SQLFacts <> 47 Questionable Parameters
+
+This fact is a list of parameters with a data type different from a column of the same name.
+
+-- SQLFacts <> 48 Questionable References
+
+This fact is a list of references between routines that may result in lower performance.
+

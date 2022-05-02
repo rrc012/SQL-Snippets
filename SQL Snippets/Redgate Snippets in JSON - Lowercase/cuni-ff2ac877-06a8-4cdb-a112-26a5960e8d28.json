@@ -1,0 +1,20 @@
+{
+  "id": "ff2ac877-06a8-4cdb-a112-26a5960e8d28",
+  "prefix": "cuni",
+  "description": "Create unique nonclustered index",
+  "body": "create unique nonclustered index $index_name$\r\non $owner$ ( $column$ )\r\n--with pad_index\r\n--    | fillfactor = fillfactor\r\n--    | ignore_dup_key\r\n--    | drop_existing\r\n--    | statistics_norecompute\r\n--    | sort_in_tempdb, .. as required\r\n-- on filegroup\r\ngo\r\n",
+  "placeholders": [
+    {
+      "name": "owner",
+      "defaultValue": "[schema].[index_name]"
+    },
+    {
+      "name": "column",
+      "defaultValue": ""
+    },
+    {
+      "name": "index_name",
+      "defaultValue": ""
+    }
+  ]
+}

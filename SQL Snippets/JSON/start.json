@@ -1,0 +1,1 @@
+{  "prefix": "start",  "description": "",  "body": "use msdb;goset nocount on;/*select j.name, js.step_id, js.step_name, js.subsystem   from dbo.sysjobs as j       inner join dbo.sysjobsteps as js on j.job_id = js.job_id where 1 = 1 order by 1, 2;--*/exec dbo.sp_start_job @job_name = n'#',                      @step_name = null;"}

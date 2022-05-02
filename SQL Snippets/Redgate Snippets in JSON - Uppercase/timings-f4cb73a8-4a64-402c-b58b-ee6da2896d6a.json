@@ -1,0 +1,12 @@
+{
+  "id": "f4cb73a8-4a64-402c-b58b-ee6da2896d6a",
+  "prefix": "timings",
+  "description": "Wraps a simple timings test harness around the selected code",
+  "body": "/**\r\nBased on code by Phil Factor (https://www.red-gate.com/hub/product-learning/sql-prompt/record-t-sql-execution-times-using-sql-prompt-snippet).\r\n**/\r\nDECLARE @log table\r\n(\r\n    TheOrder     int IDENTITY(1, 1),\r\n    WhatHappened varchar(200),\r\n    WhenItDid    datetime2 DEFAULT GETDATE()\r\n)\r\n----start of timing\r\nINSERT INTO @log(WhatHappened)\r\nSELECT 'Starting $routine$' --place at the start\r\n \r\n$SELECTEDTEXT$$CURSOR$\r\n \r\n--where the routine you want to time ends\r\nINSERT INTO @log(WhatHappened)\r\nSELECT '$routine$ took '\r\nSELECT ending.WhatHappened, DATEDIFF(ms, starting.WhenItDid, ending.WhenItDid)\r\nFROM   @log starting\r\n       INNER JOIN @log ending\r\n           ON ending.TheOrder = starting.TheOrder + 1\r\n--list out all the timings",
+  "placeholders": [
+    {
+      "name": "routine",
+      "defaultValue": ""
+    }
+  ]
+}

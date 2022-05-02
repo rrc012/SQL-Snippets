@@ -1,0 +1,1 @@
+{  "prefix": "stop",  "description": "",  "body": "use msdb;goset nocount on;/*select *   from dbo.sysjobs where 1 = 1 order by 3;--*/exec dbo.sp_stop_job n'#';"}

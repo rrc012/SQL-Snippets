@@ -1,0 +1,1 @@
+{  "prefix": "schedule",  "description": "",  "body": "exec msdb..sp_help_jobschedule @job_name = '#';"}

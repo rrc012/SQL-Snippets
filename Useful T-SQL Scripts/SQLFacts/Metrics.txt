@@ -1,0 +1,341 @@
+/* ------------------------------ *\
+
+   © Copyright 2021 by Wingenious
+
+   see README for license details
+
+\* ------------------------------ */
+
+
+----------
+MetricsNow
+----------
+
+The MetricsNow SQL file is used as a stand-alone tool to assist with diagnosing unexpectedly slow performance.
+
+The MetricsNow SQL file is intended for SQL Server 2012 and newer. There are two disabled lines of SQL code to exchange with active lines for use with some prior versions.
+
+The MetricsNow SQL file gathers and examines current values for many performance metrics. There are two parameters near the start of the SQL code to specify how many times the monitoring data will be gathered and how long to wait between each gathering. After the monitoring data has been collected, seven result sets are displayed. The result sets are described below (see MetricsHistory). It may be beneficial to save a copy of the result sets during a period when the server is functioning normally, even if it's done as a screen shot, so there's a baseline for comparison when something is going wrong later.
+
+There's a block of SQL code near the top to specify which databases (data files) to monitor for file read/write activity.
+
+
+--------------
+MetricsHistory
+--------------
+
+The MetricsHistory SQL file is used to implement a very capable monitoring system to gather and examine historic performance metrics.
+
+The MetricsHistory SQL file is intended for SQL Server 2012 and newer. There are two disabled lines of SQL code to exchange with active lines for use with some prior versions.
+
+The MetricsHistory SQL file creates seven tables and 14 stored procedures in the current database. The tables will contain the collected historic performance data. The tables are populated with four stored procedures. The system was designed to have these four very lightweight stored procedures get executed automatically every few minutes, which is typically done through scheduled SQL Server Agent jobs. The collected historic performance data is examined with nine stored procedures. These stored procedures return nine different result sets, each one focused on different kinds of performance metrics. The collected historic performance data is pruned with one stored procedure.
+
+There's a block of SQL code near the top to specify which databases (data files) to monitor for file read/write activity.
+
+
+-------------
+MetricsAlerts
+-------------
+
+The MetricsAlerts SQL file is used with MetricsHistory to generate alerts when readings are abnormal.
+
+The MetricsAlerts SQL file creates one stored procedure (SendAlertMessages) in the current database. The stored procedure has been separated from the others because adjustments/deployments may happen after monitoring has been established.
+
+The system looks at previous readings in two groups to determine abnormality.
+Group 1 is the last several readings, roughly during the last hour.
+Group 2 is the readings from the same time of day for the last week.
+The system calculates a mean and standard deviation for each group. If the current reading is within X standard deviations of the mean for either group then it's considered normal.
+
+There are two variables (one for each group) near the start of the SQL code to specify how abnormal readings must be before they cause an alert.
+The values represent how many standard deviations away from the mean before a reading is considered abnormal.
+The values can be increased for less alerts.
+The values can be decreased for more alerts.
+
+The stored procedure uses sp_send_dbmail to send alert messages. The SQL code MUST be modified to use an appropriate profile name and recipient list.
+
+The stored procedure should be scheduled to run automatically along with the stored procedures to gather monitoring data.
+
+
+--------------------------------------------------------------------------
+There are four MetricsHistory stored procedures to gather monitoring data.
+--------------------------------------------------------------------------
+
+• GetCounterValues
+• GetWaitCounts
+• GetWaitValues
+• GetFileValues
+
+These stored procedures have no parameters. They are typically executed automatically through scheduled SQL Server Agent jobs. The jobs would typically be scheduled to run every few minutes, with intervals of 5/10/15 minutes between each run being common. An interval of less than two minutes generates too much historic data where the value of each reading becomes less useful. An interval of more than 30 minutes generates too little historic data where the readings may not sufficiently isolate a particular incident. These stored procedures do not necessarily have to run on the same schedule. There may be a need to execute some more frequently than others to get an appropriate amount of historic data.
+
+
+GetCounterValues
+================
+
+This stored procedure gathers data for the GetServerStatusRAM, GetServerStatusCode, GetServerStatus, and GetServerHistory result sets.
+
+It's best if the stored procedure is executed automatically every few minutes through a scheduled SQL Server Agent job.
+
+
+GetWaitCounts
+=============
+
+This stored procedure gathers data for the GetWaitSummary result set.
+
+It's best if the stored procedure is executed automatically every few minutes through a scheduled SQL Server Agent job.
+
+
+GetWaitValues
+=============
+
+This stored procedure gathers data for the GetWaitHistory, GetWaitHistoryCounts, and GetWaitHistoryCountsLocks result sets.
+
+It's best if the stored procedure is executed automatically every few minutes through a scheduled SQL Server Agent job.
+
+
+GetFileValues
+=============
+
+This stored procedure gathers data for the GetFileHistory result set.
+
+It's best if the stored procedure is executed automatically every few minutes through a scheduled SQL Server Agent job.
+
+
+-------------------------------------------------------------------------------
+There are nine MetricsHistory stored procedures to view monitoring information.
+-------------------------------------------------------------------------------
+
+• GetServerStatusRAM
+• GetServerStatusCode
+• GetServerStatus
+• GetServerHistory
+• GetWaitHistory
+• GetWaitHistoryCounts
+• GetWaitHistoryCountsLocks
+• GetWaitSummary
+• GetFileHistory
+
+These stored procedures have three parameters.
+
+• @Intervals
+• @DateTimeFrom
+• @DateTimeThru
+
+The @Intervals parameter specifies how many readings to aggregate together. The default value is one. If data was collected every 10 minutes then a value of three would show the data in 30-minute slices and a value of 144 would show the data in day-long slices. It may be useful to view the data in large slices in order to recognize patterns over time.
+
+The @DateTimeFrom/@DateTimeThru parameters define a date/time range for the performance metrics. The default date/time range is the last seven days.
+
+The result sets have some columns in common.
+
+• KeyDT
+
+This column is the date/time of the reading, or the final date/time in a slice of 1-N intervals.
+
+• Seconds
+
+This column is the number of seconds included in a slice of 1-N intervals. If data was collected every 10 minutes then a single interval would be 600 seconds.
+
+
+GetServerStatusRAM
+==================
+
+This result set is the same information as MetricsNow Result Set #1.
+
+This result set shows metrics related to current RAM usage by the SQL Server instance.
+
+• KeyDT
+• BCHR             - Buffer Cache Hit Ratio
+• Page_Life        - Page Life Expectancy
+• RAM_stalls       - Memory Grants Pending
+• RAM_grants       - Memory Grants Outstanding
+• GBs_RAM_task     - Granted Workspace Memory (KB)
+• GBs_RAM_lock     - Lock Memory (KB)
+• GBs_RAM_disk     - Database Cache Memory (KB)
+• GBs_RAM_total    - Total Server Memory (KB)
+• GBs_RAM_ideal    - Target Server Memory (KB)
+• GBs_RAM_final    - physical_memory_kb
+• GBs_Server_Min   - min server memory (MB)
+• GBs_Server_Max   - max server memory (MB)
+
+
+GetServerStatusCode
+===================
+
+This result set is the same information as MetricsNow Result Set #2.
+
+This result set shows metrics related to current plan caching by the SQL Server instance.
+
+• KeyDT
+• PCHR_object      - Cache Hit Ratio (Object Plans)
+• PCHR_ad_hoc      - Cache Hit Ratio (SQL Plans)
+• Tally_PC_object  - Cache Object Counts (Object Plans)
+• Tally_PC_ad_hoc  - Cache Object Counts (SQL Plans)
+• GBs_PC_object    - Cache Pages (Object Plans)
+• GBs_PC_ad_hoc    - Cache Pages (SQL Plans)
+• KBs_Each_object  - Cache Pages (Object Plans) / Cache Object Counts (Object Plans)
+• KBs_Each_ad_hoc  - Cache Pages (SQL Plans)    / Cache Object Counts (SQL Plans)
+• Trigger_Nest     - nested triggers
+• Favor_ad_hoc     - optimize for ad hoc workloads
+• DOP_Max          - max degree of parallelism
+• DOP_Cost         - cost threshold for parallelism
+
+
+GetServerStatus
+===============
+
+This result set is the same information as MetricsNow Result Set #3.
+
+This result set shows metrics related to processing activity by the SQL Server instance. It represents the current state.
+
+• KeyDT
+• Transactions     - Active Transactions (_Total)
+• XAs_tempdb       - Active Transactions (tempdb)
+• Cursors_All      - Active Cursors      (_Total)
+• Cursors_API      - Active Cursors      (API Cursor)
+• Temp_Tables      - Active Temp Tables
+• SPID_Blocks      - Processes Blocked
+• Connections      - User Connections
+• CPUs_All         - cpu_count
+• CPUs_SQL         - schedulers online
+• CPUs_Idle        - schedulers idle
+• Workers_All      - current_workers_count
+• Workers_Wait     - runnable_tasks_count
+• Tasks_All        - current_tasks_count
+                   + work_queue_count
+• Tasks_Wait       - work_queue_count
+• Pending_IOs      - pending_disk_io_count
+
+
+GetServerHistory
+================
+
+This result set is the same information as MetricsNow Result Set #4.
+
+This result set shows metrics related to processing activity by the SQL Server instance. It represents the change in state over a period of time (Seconds).
+
+• KeyDT
+• Seconds
+• Transactions     - Transactions    (_Total)
+• XAs_tempdb       - Transactions    (tempdb)
+• Cursors_All      - Cursor Requests (_Total)
+• Cursors_API      - Cursor Requests (API Cursor)
+• Temp_Tables      - Temp Tables Creation Rate
+• Table_Scans      - Full Scans
+• Page_Splits      - Page Splits
+• Page_Reads       - Page Reads
+• Page_Writes      - Page Writes
+• SQL_Compiles     - SQL Compilations
+• SQL_Batches      - Batch Requests
+• Errors_11_19     - Errors (User Errors)
+• Errors_20_25     - Errors (Kill Connection Errors)
+• Deadlocks        - Number of Deadlocks
+
+
+GetWaitHistory
+GetWaitHistoryCounts
+GetWaitHistoryCountsLocks
+=========================
+
+This result set is the same information as MetricsNow Result Set #5.
+
+This result set shows metrics related to wait statistics and locks for the SQL Server instance.
+
+???_WC = waiting_tasks_count
+???_WT = wait_time (seconds)
+???_WP = percentage of all wait time
+
+??? = NIO, DIO, SIO, PIO, LOG, RAM, CPU, DOP, LCK
+
+• KeyDT
+• Seconds
+• SQL_WS           - signal_wait_time (seconds), sum of all wait types
+• SQL_WT           -        wait_time (seconds), sum of all wait types
+• SQL_WP           - SQL_WS as percentage of SQL_WT
+• NIO_W?           - ASYNC_NETWORK_IO
+• DIO_W?           - ASYNC_IO_COMPLETION
+• SIO_W?           -       IO_COMPLETION
+• PIO_W?           - PAGEIOLATCH_?? (sum)
+• LOG_W?           - LOGBUFFER
+• RAM_W?           - RESOURCE_SEMAPHORE
+• CPU_W?           - SOS_SCHEDULER_YIELD
+• DOP_W?           - CXPACKET
+• LCK_W?           - combination of all lock types
+
+• DBM_W?           - LCK_M_SCH_M
+• DBS_W?           - LCK_M_SCH_S
+• X___W?           - LCK_M_X
+• U___W?           - LCK_M_U
+• S___W?           - LCK_M_S
+• IX__W?           - LCK_M_IX
+• IU__W?           - LCK_M_IU
+• IS__W?           - LCK_M_IS
+• SIX_W?           - LCK_M_SIX
+• SIU_W?           - LCK_M_SIU
+• UIX_W?           - LCK_M_UIX
+
+W? = WC, WT, WP
+
+
+GetWaitSummary
+==============
+
+This result set is the same information as MetricsNow Result Set #6.
+
+This result set shows cumulative waits encountered by the SQL Server instance, as observed when each reading was performed.
+
+• wait_type        - wait_type
+• KeyDT_MIN        - minimum reading date/time when this wait_type was observed
+• KeyDT_MAX        - maximum reading date/time when this wait_type was observed
+• wait_count       - number of times                this wait_type was observed
+• Intervals        - number of readings where       this wait_type was observed
+• Average          - average times for each reading
+• Percent          - percent for this wait_type over all wait_types
+
+NOTE: This result set does not capture every occurrence of any wait_type. It captures only what was observed when each reading was performed.
+
+If a wait_type observation is associated with tempdb then the wait_type value has "_tempdb" appended.
+
+A high amount of waiting of type PAGELATCH_SH for tempdb may indicate a need to increase the number of tempdb data files.
+A high amount of waiting of type PAGELATCH_UP for tempdb may indicate a need to increase the number of tempdb data files.
+A high amount of waiting of type PAGELATCH_EX for tempdb may indicate a need to decrease the usage of temporary tables or use the memory-optimized tempdb metadata feature of SQL Server 2019.
+A high amount of waiting of type PAGELATCH_EX for user databases may indicate a need to reconsider the clustered index keys or use the OPTIMIZE_FOR_SEQUENTIAL_KEY feature of SQL Server 2019.
+
+
+GetFileHistory
+==============
+
+This result set is the same information as MetricsNow Result Set #7.
+
+This result set shows metrics related to data file read/write operations by the SQL Server instance.
+
+• Database         - database name
+• Files            - number of data files
+• KeyDT
+• Seconds
+• Tally_Reads      - num_of_reads
+• Tally_Writes     - num_of_writes
+• Stall_Reads      - io_stall_read_ms                  - (seconds)
+• Stall_Writes     - io_stall_write_ms                 - (seconds)
+• Stall_Per_Read   - io_stall_read_ms  / num_of_reads  - (seconds)
+• Stall_Per_Write  - io_stall_write_ms / num_of_writes - (seconds)
+• GBs_File_Reads   - num_of_bytes_read
+• GBs_File_Writes  - num_of_bytes_written
+• GBs_Size_Change  - size_on_disk_bytes
+
+
+----------------------------------------------------------------------
+There is one MetricsHistory stored procedure to prune monitoring data.
+----------------------------------------------------------------------
+
+• PruneHistory
+
+The stored procedure has one parameter, @DaysToRetain, which specifies how many days of performance data to keep. The stored procedure is typically executed automatically through a scheduled SQL Server Agent job. The job would typically be scheduled to run daily.
+
+
+PruneHistory
+============
+
+The collected historic performance data may need to be pruned periodically to avoid excessive accumulation.
+
+The stored procedure deletes the oldest data from all four tables containing history. It leaves the newest data intact, covering the specified number of days.
+
+

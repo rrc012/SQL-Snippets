@@ -1,0 +1,1 @@
+{  "prefix": "stats",  "description": "",  "body": "select name as indexname,       stats_date(object_id, stats_id) as laststatisticsupdate  from sys.stats where object_id = object_id('tablename')   and name = 'indexname';"}

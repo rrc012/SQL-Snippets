@@ -1,0 +1,12 @@
+{
+  "id": "f7699143-bacc-4817-91f6-2df2b49667ec",
+  "prefix": "cp",
+  "description": "Create stored procedure",
+  "body": "--SET QUOTED_IDENTIFIER ON|OFF\r\n--SET ANSI_NULLS ON|OFF\r\n--GO\r\nCREATE PROCEDURE $procedure_name$\r\n    @parameter_name AS INT\r\n-- WITH ENCRYPTION, RECOMPILE, EXECUTE AS CALLER|SELF|OWNER| 'user_name'\r\nAS\r\nBEGIN\r\n    $CURSOR$\r\nEND\r\nGO\r\n--SET QUOTED_IDENTIFIER ON|OFF\r\n--SET ANSI_NULLS ON|OFF\r\n--GO",
+  "placeholders": [
+    {
+      "name": "procedure_name",
+      "defaultValue": "[schema].[procedure_name]"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "9df5b5c8-0e2f-44e6-ae58-7c3918b81792",
+  "prefix": "csf",
+  "description": "Create scalar function",
+  "body": "create function $function_name$\r\n    (@parameter_name as int)\r\nreturns int\r\n--with encryption|schemabinding, ...\r\nas\r\nbegin\r\n    return $selectedtext$$cursor$\r\nend\r\ngo\r\n",
+  "placeholders": [
+    {
+      "name": "function_name",
+      "defaultValue": "[schema].[function_name]"
+    }
+  ]
+}

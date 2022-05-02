@@ -1,0 +1,16 @@
+{
+  "id": "866694a5-e385-4078-96ed-8fe11b48cbd6",
+  "prefix": "clrp",
+  "description": "Create CLR stored procedure",
+  "body": "--set quoted_identifier on|off\r\n--set ansi_nulls on|off\r\n--go\r\n\r\ncreate procedure $procedure_name$\r\n(\r\n    @parameter_name as int\r\n)\r\n-- with execute as caller|self|owner| 'user_name'\r\nas external name $external_name$\r\ngo\r\n\r\n--set quoted_identifier on|off\r\n--set ansi_nulls on|off\r\n--go",
+  "placeholders": [
+    {
+      "name": "external_name",
+      "defaultValue": "[assembly].[class].[method]"
+    },
+    {
+      "name": "procedure_name",
+      "defaultValue": "[schema].[procedure_name]"
+    }
+  ]
+}

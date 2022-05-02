@@ -1,0 +1,248 @@
+/* ------------------------------ *\
+
+   © Copyright 2021 by Wingenious
+
+   see README for license details
+
+\* ------------------------------ */
+
+
+------------------------
+SQLFacts Version History
+------------------------
+
+
+20210725
+========
+
+initial release
+
+
+20210805
+========
+
+IndexNeedsPlus
+parsed index impact value into a separate column
+
+
+20210810
+========
+
+QueryHistory
+fixed an issue that caused ad hoc queries to be filtered out
+
+IndexNeedsPlus
+fixed an issue that caused ad hoc queries to be filtered out
+
+
+20210812
+========
+
+QueryHistory
+renamed several columns, in both result sets, for better clarity
+added a variable to quickly switch between run time and CPU time
+
+
+20210824
+========
+
+MetricsNow
+added monitoring for observations of all wait_type values
+
+MetricsHistory
+added monitoring for observations of all wait_type values
+
+AGLatency
+introduction of a new tool
+
+Statistics
+introduction of a new tool
+
+
+20210828
+========
+
+Statistics
+added two more columns
+
+SQLAgent
+introduction of a new tool
+
+
+20210829
+========
+
+SQLAgent
+added a column to the first result set
+
+Search
+created two variants to replace the original tool, SearchFast and SearchWild
+
+
+20210831
+========
+
+Search
+enhanced results and performance of (optionally) excluding SQL code comments
+
+
+20210906
+========
+
+Resources
+introduction of a new tool
+
+
+20210912
+========
+
+Auditor
+introduction of a new tool
+
+
+20210915
+========
+
+Locksmith
+introduction of a new tool
+
+
+20210926
+========
+
+GenerateSQL
+introduction of a new tool
+
+
+20210928
+========
+
+GenerateSQL
+improved handling of TVFs
+improved handling of redundant references
+
+
+20211004
+========
+
+SQLFacts
+added Percent column to Fact06
+added Percent column to Fact07
+
+Deadlocks
+introduction of a new tool
+
+
+20211010
+========
+
+GenerateSQL
+added a new variant, GenerateSQL_IN, to generate INSERT statements
+added a new variant, GenerateSQL_UP, to generate UPDATE statements
+
+BACKUP
+added a result set for a summary of BACKUP operations
+rearranged/renamed columns of the original result set
+
+
+20211021
+========
+
+Databases
+moved GBs_File_MIN column to result set 4, by filegroup
+moved GBs_File_MAX column to result set 4, by filegroup
+
+Blocking
+introduction of a new tool
+
+
+20211103
+========
+
+MetricsHistory
+added an alerting component (MetricsAlerts)
+
+
+20211109
+========
+
+MetricsHistory
+renamed some alerts for better clarity (MetricsAlerts)
+
+Search
+added SQL Server Agent jobs to Search_Fast
+added SQL Server Agent jobs to Search_Wild
+added a variant for searching names of objects/columns
+
+
+20211115
+========
+
+Search
+Search_Fast, excluded generated objects
+Search_Wild, excluded generated objects
+Search_Wild, took out assumed wildcards
+Search_Name, took out assumed wildcards
+
+MetricsHistory
+fixed an issue where SIO and PIO were mixed up (MetricsAlerts)
+
+Statistics
+added column-level statistics
+added Nature column as a short form of key index information
+
+IndexHistory
+added Nature column as a short form of key index information
+
+IndexActivity
+added Nature column as a short form of key index information
+
+
+20211122
+========
+
+Search
+Search_Fast, added second result set for summary of matches
+Search_Wild, added second result set for summary of matches
+
+AGLatency
+added brackets around database name in dynamic SQL code
+
+Auditor
+added brackets around database name in dynamic SQL code
+
+Bufferin
+added brackets around database name in dynamic SQL code
+
+Databases
+added brackets around database name in dynamic SQL code
+
+Locksmith
+added brackets around database name in dynamic SQL code
+
+
+20211124
+========
+
+Janitor
+introduction of a new tool
+
+
+20220103
+========
+
+Indexer
+introduction of a new tool with three variants
+Indexer_Columns
+Indexer_DBAdmin
+Indexer_SQLCode
+
+
+20220111
+========
+
+Indexer
+Indexer_SQLCode
+fixed an issue with clustered columnstore indexes
+
+

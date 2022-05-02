@@ -1,0 +1,12 @@
+{
+  "id": "eb64a7e9-4436-4287-b43f-5b409b3c67ea",
+  "prefix": "cv",
+  "description": "Create view",
+  "body": "create view $view_name$\r\n--with encryption, schemabinding, view_metadata\r\nas\r\n    $SELECTEDTEXT$$CURSOR$\r\n-- with check option\r\ngo\r\n",
+  "placeholders": [
+    {
+      "name": "view_name",
+      "defaultValue": "[schema].[view_name]"
+    }
+  ]
+}

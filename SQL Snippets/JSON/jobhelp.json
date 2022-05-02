@@ -1,0 +1,1 @@
+{  "prefix": "jobhelp",  "description": "",  "body": "exec msdb..sp_help_job @job_name = '#',                       @job_aspect = 'job';"}

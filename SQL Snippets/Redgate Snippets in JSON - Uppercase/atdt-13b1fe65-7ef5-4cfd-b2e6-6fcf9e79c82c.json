@@ -1,0 +1,12 @@
+{
+  "id": "13b1fe65-7ef5-4cfd-b2e6-6fcf9e79c82c",
+  "prefix": "atdt",
+  "description": "Disable trigger",
+  "body": "ALTER TABLE $table_name$ DISABLE TRIGGER ",
+  "placeholders": [
+    {
+      "name": "table_name",
+      "defaultValue": "[schema].[table_name]"
+    }
+  ]
+}

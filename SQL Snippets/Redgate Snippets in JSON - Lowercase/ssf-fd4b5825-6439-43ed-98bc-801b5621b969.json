@@ -1,0 +1,6 @@
+{
+  "id": "fd4b5825-6439-43ed-98bc-801b5621b969",
+  "prefix": "ssf",
+  "description": "SELECT * FROM fragment",
+  "body": "select * from "
+}

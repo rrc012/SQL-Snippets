@@ -1,0 +1,12 @@
+{
+  "id": "f7034db0-9b18-4324-8a66-c14b41c20708",
+  "prefix": "ctf",
+  "description": "Create multi-statement table-valued function",
+  "body": "create function $function_name$\r\n    (@parameter_name as int)\r\nreturns @return_variable table (/* table type definition */)\r\n--with encryption|schemabinding, ...\r\nas\r\nbegin\r\n    return $CURSOR$\r\nend\r\ngo\r\n",
+  "placeholders": [
+    {
+      "name": "function_name",
+      "defaultValue": "[schema].[function_name]"
+    }
+  ]
+}

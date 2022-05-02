@@ -1,0 +1,12 @@
+{
+  "id": "f7699143-bacc-4817-91f6-2df2b49667ec",
+  "prefix": "cp",
+  "description": "Create stored procedure",
+  "body": "--set quoted_identifier on|off\r\n--set ansi_nulls on|off\r\n--go\r\ncreate procedure $procedure_name$\r\n    @parameter_name as int\r\n-- with encryption, recompile, execute as caller|self|owner| 'user_name'\r\nas\r\nbegin\r\n    $cursor$\r\nend\r\ngo\r\n--set quoted_identifier on|off\r\n--set ansi_nulls on|off\r\n--go",
+  "placeholders": [
+    {
+      "name": "procedure_name",
+      "defaultValue": "[schema].[procedure_name]"
+    }
+  ]
+}

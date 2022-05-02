@@ -1,0 +1,6 @@
+{
+  "id": "2629d545-5832-46b6-9d36-56a8354dcf30",
+  "prefix": "cu",
+  "description": "Create database user",
+  "body": "create user $CURSOR$\r\nfor /* from */ login /* login_name */\r\n--\tcertificate certificate_name\r\n--\tasymmetric key key_name\r\n--\twithout login\r\n--\twith default_schema = schema_name\r\ngo\r\n"
+}
